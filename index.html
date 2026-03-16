@@ -485,7 +485,7 @@ async function loadFlights(initial){
       const cs=f[1].trim();if(played.has(cs))return;
       const mk=L.marker([f[6],f[5]],{icon:pIcon(f[10]||0,false,false)}).addTo(map);
       const alt=f[7]?Math.round(f[7]/100)*100+'מ׳':'?', spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
-      mk.bindTooltip('<b>'+cs+'</b><br>'+(f[2]||'')+'<br>'+alt+' · '+spd,{direction:'top',className:'ptip',offset:[0,-10]});
+      mk.bindTooltip('<b>'+cs+'</b><br>'+alt+' · '+spd,{direction:'top',className:'ptip',offset:[0,-10]});
       mk.on('click',()=>clickFlight(cs));
       markers[cs]={marker:mk,lat:f[6],lon:f[5],heading:f[10]||0,speed:f[9]||0,data:f};
     });
