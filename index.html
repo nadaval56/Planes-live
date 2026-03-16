@@ -377,51 +377,54 @@ input::placeholder{color:var(--muted)}
     </div>
   </div>
 
-  <!-- Bottom panel: LEFT=hints, RIGHT=question+guess+lb -->
+  <!-- Bottom panel: RIGHT=question, MIDDLE=hints, LEFT=leaderboard -->
   <div id="bottom-panel">
 
-    <!-- LEFT: hint carousel -->
-    <div id="hints-col">
-      <div id="hint-carousel">
-        <div style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px">
-          <div class="idle-plane">✈️</div>
-          <div style="font-size:0.85rem">בחר מטוס מהמפה</div>
+    <!-- RIGHT col (RTL first): question + guess -->
+    <div id="q-col">
+      <div id="q-top">
+        <div id="q-idle" class="q-idle">✈️<br>בחר מטוס<br>מהמפה</div>
+        <div id="q-active" style="display:none">
+          <div class="q-question">🔍 לאן אני טס?</div>
+          <div class="q-cs" id="q-cs"></div>
+          <div class="q-stats" id="q-stats"></div>
         </div>
       </div>
-    </div>
-
-    <!-- RIGHT: question + guess + leaderboard -->
-    <div id="right-col">
-      <div id="right-top">
-        <div id="rt-idle" class="rt-idle">בחר מטוס ↑</div>
-        <div id="rt-active" style="display:none">
-          <div class="rt-question">🔍 לאן אני טס?</div>
-          <div class="rt-cs" id="rt-cs"></div>
-          <div class="rt-stats" id="rt-stats"></div>
-        </div>
-      </div>
-      <div id="guess-row" style="display:none">
+      <div id="guess-row">
         <input type="text" id="guess-input" placeholder="עיר / מדינה..."
           onkeydown="if(event.key==='Enter')submitGuess()"/>
         <button class="btn btn-amber" onclick="submitGuess()">🎯 נחש</button>
       </div>
-      <div id="lb-col">
-        <div class="lb-col-title">🏆 ניקוד</div>
-        <div id="lb-mini-rows">
-          <div style="color:var(--muted);font-size:0.72rem;text-align:center;padding:8px">ממתין...</div>
+    </div>
+
+    <!-- MIDDLE col: hint carousel -->
+    <div id="hints-col">
+      <div id="hints-col-label">רמזים — לחץ לחשיפה</div>
+      <div id="hint-carousel">
+        <div style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px">
+          <div class="idle-plane">✈️</div>
+          <div style="font-size:0.82rem">בחר מטוס מהמפה</div>
         </div>
       </div>
     </div>
 
-    <!-- RESULT overlay — covers entire bottom panel -->
-    <div id="result-box">
-      <div class="result-emoji" id="r-emoji"></div>
-      <div class="result-pts" id="r-pts"></div>
-      <div class="result-dest" id="r-dest"></div>
-      <button class="btn btn-primary" style="margin-top:4px;padding:11px 24px;width:auto" onclick="nextRound()">✈️ מטוס אחר</button>
+    <!-- LEFT col (RTL last): leaderboard full height -->
+    <div id="lb-col">
+      <div class="lb-col-title">🏆 ניקוד</div>
+      <div id="lb-mini-rows">
+        <div style="color:var(--muted);font-size:0.72rem;text-align:center;padding:10px">ממתין...</div>
+      </div>
     </div>
 
   </div><!-- /bottom-panel -->
+
+  <!-- RESULT: fixed overlay, always visible -->
+  <div id="result-box">
+    <div class="result-emoji" id="r-emoji"></div>
+    <div class="result-pts" id="r-pts"></div>
+    <div class="result-dest" id="r-dest"></div>
+    <button class="btn btn-primary" style="margin-top:6px;padding:12px 28px;width:auto;font-size:1rem" onclick="nextRound()">✈️ מטוס אחר</button>
+  </div>
 
 </div><!-- /screen-student-game -->
 
@@ -663,10 +666,10 @@ function onFlightClick(cs){
   const altStr=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
   const spdStr=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
   const dirStr=dir(f[10]);
-  document.getElementById('rt-idle').style.display='none';
-  document.getElementById('rt-active').style.display='block';
-  document.getElementById('rt-cs').textContent='✈ '+cs+' · '+(f[2]||'');
-  document.getElementById('rt-stats').innerHTML=
+  document.getElementById('q-idle').style.display='none';
+  document.getElementById('q-active').style.display='block';
+  document.getElementById('q-cs').textContent='✈ '+cs+' · '+(f[2]||'');
+  document.getElementById('q-stats').innerHTML=
     '📍 '+altStr+'<br>💨 '+spdStr+'<br>🧭 '+dirStr;
 
   // Show loading in carousel
@@ -775,9 +778,9 @@ function resetGameUI(){
     '<div id="idle-msg" style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px">'
     +'<div class="idle-plane">✈️</div><div>לחץ על מטוס<br>כדי להתחיל</div></div>';
   document.getElementById('guess-row').style.display='none';
-  document.getElementById('guess-input') && (document.getElementById('guess-input').value='');
-  document.getElementById('rt-idle').style.display='block';
-  document.getElementById('rt-active').style.display='none';
+  const gi=document.getElementById('guess-input');if(gi)gi.value='';
+  document.getElementById('q-idle').style.display='block';
+  document.getElementById('q-active').style.display='none';
   // Deselect all
   Object.entries(planeMarkers).forEach(([cs,p])=>{
     if(!playedFlights.has(cs))p.marker.setIcon(planeIcon(p.heading,false,false));
