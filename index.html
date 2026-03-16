@@ -124,11 +124,22 @@ input::placeholder{color:var(--muted)}
   border-left:1px solid var(--border);
   background:var(--bg3);overflow:hidden;
 }
+/* info-col */
+#info-col{
+  width:160px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  border-left:1px solid var(--border);
+  background:var(--bg3);overflow:hidden;
+}
+#info-body{flex:1;padding:8px 11px;display:flex;flex-direction:column;justify-content:center}
+.info-idle{color:var(--muted);font-size:0.8rem;text-align:center;line-height:1.7}
+.info-cs{font-size:0.88rem;color:var(--cyan);font-weight:900;margin-bottom:4px}
+.info-country{font-size:0.72rem;color:var(--muted);margin-bottom:6px}
+.info-stat{font-size:0.75rem;margin-bottom:3px}
+.info-stat span{color:var(--text);font-weight:700}
+
 /* q-col internals */
-#q-info{flex-shrink:0;padding:6px 10px;border-bottom:1px solid var(--border);
-  background:rgba(0,0,0,0.2)}
-.q-cs{font-size:0.75rem;color:var(--cyan);font-weight:700}
-.q-stats{font-size:0.68rem;color:var(--muted);line-height:1.7;margin-top:2px}
+#q-col{width:340px;flex-shrink:0;border-left:1px solid var(--border);overflow:hidden}
 #q-body{flex:1;padding:7px 10px;display:flex;flex-direction:column;justify-content:center}
 .q-idle{color:var(--muted);font-size:0.82rem;text-align:center;line-height:1.7}
 .q-question{font-size:1rem;font-weight:900;color:var(--amber);margin-bottom:6px}
@@ -179,19 +190,19 @@ input::placeholder{color:var(--muted)}
   display:flex;flex-direction:column;
   background:var(--bg3);overflow:hidden;
 }
-.lb-title{flex-shrink:0;padding:4px 7px;
-  font-size:0.6rem;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}
+.lb-title{flex-shrink:0;padding:6px 9px;
+  font-size:0.78rem;font-weight:700;color:var(--amber);
+  letter-spacing:0.5px;border-bottom:1px solid var(--border)}
 #lb-rows{flex:1;overflow-y:auto;padding:3px 6px}
 #lb-rows::-webkit-scrollbar{width:2px}
 #lb-rows::-webkit-scrollbar-thumb{background:var(--border)}
-.lb-row{display:flex;align-items:center;gap:5px;padding:5px 0;
+.lb-row{display:flex;align-items:center;gap:6px;padding:6px 0;
   border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.72rem}
 .lb-row:last-child{border-bottom:none}
 .lb-row.me{color:var(--cyan);font-weight:700}
 .lb-med{font-size:0.76rem;min-width:15px}
-.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem}
-.lb-pts{color:var(--amber);font-weight:800;font-size:0.88rem;white-space:nowrap}
+.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.92rem}
+.lb-pts{color:var(--amber);font-weight:900;font-size:0.95rem;white-space:nowrap}
 
 /* ── RESULT — absolute over entire #bottom ── */
 #result{
@@ -299,21 +310,28 @@ input::placeholder{color:var(--muted)}
   <!-- Bottom panel -->
   <div id="bottom">
 
-    <!-- RIGHT: flight info + question + guess -->
-    <div id="q-col">
-      <!-- Flight info strip -->
-      <div id="q-info" style="display:none">
-        <div class="q-cs" id="q-cs"></div>
-        <div class="q-stats" id="q-stats"></div>
+    <!-- RIGHTMOST: flight info -->
+    <div id="info-col">
+      <div id="info-body">
+        <div id="info-idle" class="info-idle">✈️<br>בחר מטוס<br>מהמפה</div>
+        <div id="info-data" style="display:none">
+          <div class="info-cs" id="info-cs"></div>
+          <div class="info-country" id="info-country"></div>
+          <div class="info-stat">📍 <span id="info-alt"></span></div>
+          <div class="info-stat">💨 <span id="info-spd"></span></div>
+          <div class="info-stat">🧭 <span id="info-dir"></span></div>
+        </div>
       </div>
-      <!-- Question -->
+    </div>
+
+    <!-- QUESTION + GUESS -->
+    <div id="q-col" style="display:flex;flex-direction:column">
       <div id="q-body">
-        <div id="q-idle" class="q-idle">✈️<br>בחר מטוס מהמפה</div>
+        <div id="q-idle" class="q-idle">בחר מטוס<br>כדי להתחיל</div>
         <div id="q-active" style="display:none">
           <div class="q-question">🔍 מאיפה הגעתי?</div>
         </div>
       </div>
-      <!-- Guess input -->
       <div id="q-guess">
         <input type="text" id="guess-inp" placeholder="מדינה / עיר..."
           onkeydown="if(event.key==='Enter')submitGuess()"/>
@@ -514,9 +532,13 @@ function clickFlight(cs){
   const alt=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
   const spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
   // update q-col
-  document.getElementById('q-info').style.display='block';
-  document.getElementById('q-cs').textContent='✈ '+cs+' · '+(f[2]||'');
-  document.getElementById('q-stats').innerHTML='📍 '+alt+'<br>💨 '+spd+'<br>🧭 '+ddir(f[10]);
+  document.getElementById('info-idle').style.display='none';
+  document.getElementById('info-data').style.display='block';
+  document.getElementById('info-cs').textContent='✈ '+cs;
+  document.getElementById('info-country').textContent=f[2]||'';
+  document.getElementById('info-alt').textContent=alt;
+  document.getElementById('info-spd').textContent=spd;
+  document.getElementById('info-dir').textContent=ddir(f[10]);
   document.getElementById('q-idle').style.display='none';
   document.getElementById('q-active').style.display='block';
   document.getElementById('q-guess').style.display='none';
@@ -585,7 +607,7 @@ async function submitGuess(){
   // show result
   document.getElementById('r-emoji').textContent=ok?'🎉':'😔';
   document.getElementById('r-pts').textContent=ok?'+'+pts+' נקודות!':'';
-  document.getElementById('r-dest').innerHTML='היעד: <strong>'+S.dest+'</strong>';
+  document.getElementById('r-dest').innerHTML='המוצא: <strong>'+S.dest+'</strong>';
   document.getElementById('result').classList.add('show');
   if(ok&&pts>0&&S.sRef){
     await S.sRef.transaction(cur=>{if(!cur)return{name:S.name,score:pts};cur.score=(cur.score||0)+pts;return cur;});
@@ -605,7 +627,8 @@ function nextRound(){
 function resetUI(){
   document.getElementById('hint-carousel').innerHTML=
     '<div class="idle-msg"><div class="idle-plane">✈️</div><div>בחר מטוס</div></div>';
-  document.getElementById('q-info').style.display='none';
+  document.getElementById('info-idle').style.display='block';
+  document.getElementById('info-data').style.display='none';
   document.getElementById('q-idle').style.display='block';
   document.getElementById('q-active').style.display='none';
   document.getElementById('q-guess').style.display='none';
