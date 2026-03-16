@@ -430,12 +430,11 @@ function onFlightClick(f, marker) {
   if (state.gamePhase === 'loading-hints') return;
   const cs = f[1].trim();
   if (playedFlights.has(cs)) return; // already played
-  Object.values(planeMarkers).forEach(p => p.marker.setIcon(planeIcon(p.data[10]||0, false)));
-  marker.setIcon(planeIcon(f[10]||0, true));
+  Object.values(planeMarkers).forEach(p => p.marker.setIcon(planeIcon(p.data[10]||0, false, playedFlights.has(p.data[1]&&p.data[1].trim()))));
+  marker.setIcon(planeIcon(f[10]||0, true, false));
   state.currentFlight=f; state.hints=[]; state.hintIndex=0;
   state.potentialPoints=3; state.destination=''; state.keywords=[];
   state.gamePhase='loading-hints';
-  const cs=f[1].trim();
   const alt=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
   const spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
   const dir=headingToDir(f[10]);
