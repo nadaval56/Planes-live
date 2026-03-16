@@ -2,7 +2,7 @@
 <html dir="rtl" lang="he">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>✈️ בלש הטיסות</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -12,264 +12,214 @@
 <style>
 :root{
   --bg:#050d1a;--bg2:#0b1929;--bg3:#0f2035;
-  --cyan:#00d4ff;--cyan-dim:rgba(0,212,255,0.12);
-  --amber:#ffb830;--green:#00e676;--red:#ff5252;
+  --cyan:#00d4ff;--amber:#ffb830;--red:#ff5252;--green:#00e676;
   --text:#cde8f8;--muted:#4a7a9a;--border:rgba(0,212,255,0.18);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);direction:rtl}
 
-.screen{display:none;height:100%;flex-direction:column}
-.screen.active{display:flex;animation:fadeIn 0.3s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* ── SCREENS ── */
+.screen{display:none;height:100%;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
 
-/* ── LANDING / SETUP ── */
-#screen-landing,#screen-teacher-setup,#screen-student-join,#screen-teacher-dash{
-  overflow-y:auto;
+/* ── SETUP SCREENS (scrollable) ── */
+#screen-landing,#screen-join,#screen-teacher-setup{
+  overflow-y:auto;align-items:center;justify-content:center;padding:28px 20px;
 }
-#screen-landing{align-items:center;justify-content:center;padding:32px 24px;
-  background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,0.08) 0%,transparent 60%)}
-.logo-icon{font-size:4rem;display:block;text-align:center;
-  animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 20px var(--cyan))}
+#screen-landing{background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,0.08),transparent 60%)}
+
+/* ── TYPOGRAPHY ── */
+.logo-icon{font-size:3.8rem;display:block;text-align:center;
+  animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 18px var(--cyan))}
 @keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}
-.logo-title{font-size:2.4rem;font-weight:900;text-align:center;color:var(--cyan);
-  letter-spacing:-1px;text-shadow:0 0 36px rgba(0,212,255,0.5);margin:10px 0 5px}
-.logo-sub{text-align:center;color:var(--muted);font-size:0.95rem;margin-bottom:32px}
-.panel{width:100%;max-width:440px}
-.setup-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.logo-title{font-size:2.2rem;font-weight:900;text-align:center;color:var(--cyan);
+  letter-spacing:-1px;text-shadow:0 0 32px rgba(0,212,255,0.5);margin:10px 0 5px}
+.logo-sub{text-align:center;color:var(--muted);font-size:0.9rem;margin-bottom:28px}
 
 /* ── BUTTONS ── */
 .btn{display:block;width:100%;padding:13px 18px;border:none;border-radius:13px;
   font-family:'Heebo',sans-serif;font-size:1rem;font-weight:700;
   cursor:pointer;margin-bottom:9px;transition:all 0.2s}
 .btn:active{transform:scale(0.98)}
-.btn:disabled{opacity:0.4;cursor:not-allowed}
-.btn-primary{background:var(--cyan);color:var(--bg);box-shadow:0 4px 20px rgba(0,212,255,0.3)}
+.btn-primary{background:var(--cyan);color:var(--bg);box-shadow:0 4px 18px rgba(0,212,255,0.3)}
+.btn-amber{background:var(--amber);color:var(--bg);box-shadow:0 3px 14px rgba(255,184,48,0.3)}
 .btn-secondary{background:var(--bg2);color:var(--cyan);border:1px solid var(--border)}
-.btn-amber{background:var(--amber);color:var(--bg);box-shadow:0 4px 20px rgba(255,184,48,0.3)}
 .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(255,82,82,0.3)}
+.link-btn{background:none;border:none;color:var(--muted);font-family:'Heebo',sans-serif;
+  font-size:0.8rem;cursor:pointer;text-decoration:underline;padding:6px;display:block;
+  text-align:center;width:100%}
+.link-btn:hover{color:var(--cyan)}
 
 /* ── INPUTS ── */
-.field{margin-bottom:14px}
-.field label{display:block;font-size:0.78rem;color:var(--muted);font-weight:600;
-  margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-input{width:100%;padding:12px 15px;background:var(--bg3);border:1px solid var(--border);
-  border-radius:11px;color:var(--text);font-family:'Heebo',sans-serif;font-size:1rem;
-  direction:rtl;transition:border-color 0.2s,box-shadow 0.2s}
-input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,0.12)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:0.75rem;color:var(--muted);font-weight:600;
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+input{width:100%;padding:11px 13px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:11px;color:var(--text);font-family:'Heebo',sans-serif;font-size:0.95rem;
+  direction:rtl}
+input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
 input::placeholder{color:var(--muted)}
 
 /* ── CARD ── */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;
-  padding:18px;margin-bottom:12px;box-shadow:0 0 18px rgba(0,212,255,0.08)}
-.card-title{font-size:0.75rem;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
-.room-code-big{font-size:3.5rem;font-weight:900;text-align:center;color:var(--amber);
-  letter-spacing:12px;padding:20px;border-radius:14px;
-  background:rgba(255,184,48,0.07);border:2px solid rgba(255,184,48,0.25);
-  text-shadow:0 0 28px rgba(255,184,48,0.5);margin:8px 0}
-.err{color:var(--red);font-size:0.85rem;padding:7px 11px;
+  padding:18px;margin-bottom:12px}
+.panel{width:100%;max-width:420px}
+.err{color:var(--red);font-size:0.82rem;padding:6px 10px;
   background:rgba(255,82,82,0.08);border-radius:8px;margin-bottom:9px;display:none}
 
 /* ── TOP BAR ── */
 .top-bar{background:rgba(5,13,26,0.97);border-bottom:1px solid var(--border);
   padding:7px 13px;display:flex;align-items:center;justify-content:space-between;
-  flex-shrink:0;z-index:1000}
-.top-bar-title{font-weight:800;font-size:0.92rem;color:var(--cyan)}
+  flex-shrink:0;z-index:100}
+.top-bar-title{font-weight:800;font-size:0.9rem;color:var(--cyan)}
 .score-chip{background:rgba(255,184,48,0.12);border:1px solid rgba(255,184,48,0.3);
   border-radius:18px;padding:3px 11px;font-size:0.88rem;color:var(--amber);font-weight:800}
 
-/* ── GAME LAYOUT ── */
-#screen-student-game{display:none;height:100%;flex-direction:column}
-#screen-student-game.active{display:flex}
+/* room-code chip for teacher */
+.room-chip{background:rgba(0,212,255,0.1);border:1px solid var(--border);
+  border-radius:18px;padding:3px 12px;font-size:0.88rem;color:var(--cyan);font-weight:900;
+  letter-spacing:4px;cursor:default}
 
-#map-section{flex:1;position:relative;min-height:0}
+/* ── MAP ── */
+#map-wrap{position:relative;flex:1;min-height:0}
 #map{width:100%;height:100%}
-
-/* Map overlays */
-#map-overlay{position:absolute;inset:0;z-index:999;display:flex;align-items:center;
+#map-ov{position:absolute;inset:0;z-index:50;display:flex;align-items:center;
   justify-content:center;background:rgba(5,13,26,0.88);backdrop-filter:blur(4px);
   flex-direction:column;gap:10px}
-#map-overlay.hidden{display:none}
-.ov-plane{font-size:2.8rem;animation:flyA 1.5s ease-in-out infinite}
+#map-ov.gone{display:none}
+.ov-plane{font-size:2.6rem;animation:flyA 1.5s ease-in-out infinite}
 @keyframes flyA{0%,100%{transform:translateX(-7px) rotate(-10deg)}50%{transform:translateX(7px) rotate(10deg)}}
-.ov-text{color:var(--text);font-size:0.95rem}
+.ov-text{color:var(--text);font-size:0.9rem}
 .ov-hint{background:rgba(0,212,255,0.08);border:1px solid var(--border);border-radius:10px;
-  padding:8px 16px;color:var(--muted);font-size:0.82rem;max-width:250px;text-align:center}
-
-#map-btns{position:absolute;bottom:8px;left:8px;z-index:998;display:flex;gap:6px}
+  padding:7px 14px;color:var(--muted);font-size:0.8rem;max-width:240px;text-align:center}
+#pcount{position:absolute;top:8px;right:8px;z-index:49;
+  background:rgba(5,13,26,0.85);border:1px solid var(--border);
+  border-radius:9px;padding:3px 9px;font-size:0.74rem;color:var(--muted)}
+#loading-more{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:49;
+  background:rgba(5,13,26,0.9);border:1px solid var(--border);
+  border-radius:9px;padding:3px 10px;font-size:0.74rem;color:var(--cyan);display:none}
+#map-btns{position:absolute;bottom:8px;left:8px;z-index:49}
 .map-btn{background:rgba(5,13,26,0.92);border:1px solid var(--border);color:var(--cyan);
   border-radius:9px;padding:6px 11px;font-family:'Heebo',sans-serif;font-size:0.78rem;
-  cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);backdrop-filter:blur(6px)}
-#plane-count{position:absolute;top:8px;right:8px;z-index:998;
-  background:rgba(5,13,26,0.85);border:1px solid var(--border);
-  border-radius:9px;padding:3px 9px;font-size:0.75rem;color:var(--muted)}
-#loading-more{position:absolute;top:8px;left:8px;z-index:998;
-  background:rgba(5,13,26,0.85);border:1px solid var(--border);
-  border-radius:9px;padding:3px 9px;font-size:0.75rem;color:var(--cyan);display:none}
+  cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5)}
 
-/* ── BOTTOM PANEL — always visible ── */
-#bottom-panel{
+/* ── BOTTOM PANEL ── */
+#bottom{
   flex-shrink:0;
-  height:42vh;
+  height:18vh;          /* compact — more map */
+  min-height:130px;
   background:var(--bg2);
-  border-top:2px solid var(--border);
+  border-top:2px solid var(--cyan);
   display:flex;
   flex-direction:row;
+  position:relative;
   overflow:hidden;
 }
 
-/* Left column — hints */
-#hints-col{
-  flex:1;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
+/* RIGHT col — question + guess (first in RTL = rightmost visually) */
+#q-col{
+  width:175px;flex-shrink:0;
+  display:flex;flex-direction:column;
   border-left:1px solid var(--border);
-  overflow:hidden;
+  background:var(--bg3);overflow:hidden;
 }
-#hints-header{
-  padding:8px 12px 6px;
-  flex-shrink:0;
-  border-bottom:1px solid var(--border);
-}
-.panel-question-tag{
-  font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px
-}
-.panel-question-main{
-  font-size:1.05rem;font-weight:900;color:var(--amber);margin-top:2px
-}
-.panel-flight-stats{
-  display:flex;gap:10px;margin-top:4px;font-size:0.75rem;color:var(--muted)
-}
+#q-body{flex:1;padding:7px 10px;overflow:hidden}
+.q-idle{color:var(--muted);font-size:0.78rem;text-align:center;
+  padding-top:10px;line-height:1.6}
+.q-question{font-size:0.95rem;font-weight:900;color:var(--amber);margin-bottom:3px}
+.q-cs{font-size:0.68rem;color:var(--cyan);font-weight:700;margin-bottom:3px}
+.q-stats{font-size:0.65rem;color:var(--muted);line-height:1.7}
+#q-guess{flex-shrink:0;padding:5px 8px;border-top:1px solid var(--border);display:none}
+#q-guess input{padding:7px 9px;font-size:0.82rem;margin-bottom:5px}
+#q-guess .btn{padding:7px;font-size:0.85rem;margin:0}
 
-/* Hint carousel */
+/* MIDDLE col — hints carousel */
+#h-col{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  border-left:1px solid var(--border);
+}
+#h-label{flex-shrink:0;padding:4px 9px;
+  font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;
+  border-bottom:1px solid var(--border)}
 #hint-carousel{
-  flex:1;
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding:8px 10px;
+  flex:1;display:flex;gap:7px;
+  overflow-x:auto;overflow-y:hidden;
+  padding:6px 8px;
   scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
   align-items:stretch;
 }
 #hint-carousel::-webkit-scrollbar{height:3px}
-#hint-carousel::-webkit-scrollbar-track{background:var(--bg3)}
 #hint-carousel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.hcard{flex-shrink:0;width:180px;padding:8px 10px;scroll-snap-align:start;
+  background:var(--bg3);border-radius:10px;border:1px solid var(--border);
+  display:flex;flex-direction:column}
+.hcard.on{border-color:var(--amber);background:rgba(255,184,48,0.05)}
+.hcard.off{cursor:pointer;opacity:0.6}
+.hcard.off:hover{opacity:1;border-color:rgba(255,184,48,0.5)}
+.hcard-lbl{font-size:0.6rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:5px}
+.hcard.on .hcard-lbl{color:var(--amber)}
+.hcard.off .hcard-lbl{color:var(--muted)}
+.hcard-txt{font-size:0.8rem;line-height:1.5;flex:1}
+.hcard.off .hcard-txt{color:var(--muted);font-style:italic;font-size:0.74rem}
+.hcard-minus{font-size:0.58rem;color:var(--red);margin-top:3px}
+.idle-msg{display:flex;flex:1;align-items:center;justify-content:center;
+  flex-direction:column;gap:6px;color:var(--muted);text-align:center;font-size:0.8rem}
+.idle-plane{font-size:1.8rem;animation:flyA 2s ease-in-out infinite}
 
-.hint-card{
-  flex-shrink:0;
-  width:200px;
-  padding:10px 12px;
-  scroll-snap-align:start;
-  background:var(--bg3);
-  border-radius:12px;
-  border:1px solid var(--border);
-  display:flex;flex-direction:column;
-}
-.hint-card.unlocked{border-color:var(--amber);background:rgba(255,184,48,0.05)}
-.hint-card.locked{cursor:pointer;opacity:0.7}
-.hint-card.locked:hover{opacity:1;border-color:var(--amber)}
-.hint-card-label{font-size:0.66rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:1.2px;margin-bottom:6px;color:var(--muted)}
-.hint-card.unlocked .hint-card-label{color:var(--amber)}
-.hint-card-text{font-size:0.85rem;line-height:1.55;flex:1}
-.hint-card.locked .hint-card-text{color:var(--muted);font-style:italic;font-size:0.8rem}
-.hint-minus{font-size:0.65rem;color:var(--red);margin-top:4px}
-
-/* Guess input inside hints col */
-#guess-row{
-  flex-shrink:0;
-  display:flex;
-  gap:7px;
-  padding:7px 10px;
-  border-top:1px solid var(--border);
-}
-#guess-row input{flex:1;margin:0;padding:9px 12px;font-size:0.9rem}
-#guess-row .btn{width:auto;padding:9px 14px;margin:0;font-size:0.88rem;white-space:nowrap}
-
-/* Idle state in hints col */
-#idle-msg{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px
-}
-.idle-plane{font-size:2.5rem;animation:flyA 2s ease-in-out infinite}
-
-/* Right column — info + leaderboard */
-#right-col{
-  width:140px;
-  flex-shrink:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-/* Flight info box */
-#flight-info{
-  flex-shrink:0;
-  padding:8px 10px;
-  border-bottom:1px solid var(--border);
-  background:var(--bg3);
-  min-height:80px;
-}
-.fi-empty{color:var(--muted);font-size:0.75rem;text-align:center;padding:8px 4px}
-.fi-cs{font-size:1.05rem;font-weight:900;color:var(--cyan)}
-.fi-country{font-size:0.72rem;color:var(--muted);margin-bottom:6px}
-.fi-stat{font-size:0.75rem;margin-bottom:2px}
-.fi-stat span{color:var(--text);font-weight:700}
-
-/* Points */
-#pts-box{
-  flex-shrink:0;
-  padding:6px 10px;
-  border-bottom:1px solid var(--border);
-  background:rgba(255,184,48,0.05);
-}
-.pts-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.pts-value{font-size:1.3rem;font-weight:900;color:var(--amber)}
-
-/* Leaderboard in right col */
+/* LEFT col — leaderboard */
 #lb-col{
-  flex:1;
-  overflow-y:auto;
-  padding:6px 8px;
+  width:85px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  background:var(--bg3);overflow:hidden;
 }
-#lb-col::-webkit-scrollbar{width:3px}
-#lb-col::-webkit-scrollbar-thumb{background:var(--border)}
-.lb-col-title{font-size:0.65rem;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.lb-mini-row{display:flex;align-items:center;gap:4px;padding:4px 2px;
-  border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.75rem}
-.lb-mini-row:last-child{border-bottom:none}
-.lb-mini-row.me{color:var(--cyan);font-weight:700}
-.lb-mini-medal{font-size:0.8rem;min-width:18px}
-.lb-mini-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lb-mini-score{color:var(--amber);font-weight:800;font-size:0.8rem;white-space:nowrap}
+.lb-title{flex-shrink:0;padding:4px 7px;
+  font-size:0.6rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)}
+#lb-rows{flex:1;overflow-y:auto;padding:3px 6px}
+#lb-rows::-webkit-scrollbar{width:2px}
+#lb-rows::-webkit-scrollbar-thumb{background:var(--border)}
+.lb-row{display:flex;align-items:center;gap:3px;padding:3px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.72rem}
+.lb-row:last-child{border-bottom:none}
+.lb-row.me{color:var(--cyan);font-weight:700}
+.lb-med{font-size:0.76rem;min-width:15px}
+.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.7rem}
+.lb-pts{color:var(--amber);font-weight:800;font-size:0.75rem;white-space:nowrap}
 
-/* Result overlay inside bottom panel */
-#result-box{
+/* ── RESULT — absolute over entire #bottom ── */
+#result{
   display:none;
-  position:absolute;inset:0;
-  background:rgba(5,13,26,0.96);
-  border-radius:0;
-  flex-direction:column;align-items:center;justify-content:center;
-  gap:8px;padding:16px;text-align:center;
-  z-index:10;
+  position:absolute;inset:0;z-index:200;
+  background:rgba(5,13,26,0.97);
+  border-top:2px solid var(--cyan);
+  flex-direction:row;
+  align-items:center;justify-content:center;
+  gap:20px;padding:14px 20px;
+  text-align:center;
 }
-#result-box.show{display:flex}
-.result-emoji{font-size:2rem}
-.result-pts{font-size:1.6rem;font-weight:900;color:var(--amber)}
-.result-dest{font-size:0.92rem}
-.result-dest strong{color:var(--cyan)}
+#result.show{display:flex}
+.r-emoji{font-size:2.4rem}
+.r-pts{font-size:1.7rem;font-weight:900;color:var(--amber)}
+.r-dest{font-size:0.9rem;margin-top:4px}
+.r-dest strong{color:var(--cyan)}
 
 /* ── LEAFLET ── */
 .leaflet-tile-pane{filter:brightness(0.82) saturate(1.3)}
 .leaflet-control-zoom a{background:var(--bg2)!important;color:var(--cyan)!important;border-color:var(--border)!important}
 .leaflet-control-attribution{background:rgba(5,13,26,0.7)!important;color:var(--muted)!important;font-size:9px!important}
-.plane-tip{background:var(--bg2)!important;border:1px solid var(--border)!important;
-  color:var(--text)!important;font-family:'Heebo',sans-serif!important;font-size:0.78rem!important;border-radius:8px!important}
+.ptip{background:var(--bg2)!important;border:1px solid var(--border)!important;
+  color:var(--text)!important;font-family:'Heebo',sans-serif!important;font-size:0.76rem!important;border-radius:8px!important}
+
+/* room-code big for setup */
+.room-code-big{font-size:3rem;font-weight:900;text-align:center;color:var(--amber);
+  letter-spacing:12px;padding:18px;border-radius:14px;
+  background:rgba(255,184,48,0.07);border:2px solid rgba(255,184,48,0.25);
+  text-shadow:0 0 24px rgba(255,184,48,0.5);margin:8px 0}
 </style>
 </head>
 <body>
@@ -280,109 +230,76 @@ input::placeholder{color:var(--muted)}
   <div class="logo-title">בלש הטיסות</div>
   <div class="logo-sub">נחש לאן הטיסה מועדת — מטוסים חיים!</div>
   <div class="panel">
-    <button class="btn btn-primary" onclick="showTeacher()">👨‍🏫 אני מורה</button>
-    <button class="btn btn-secondary" onclick="showStudent()">🎒 אני תלמיד</button>
+    <button class="btn btn-primary" onclick="goJoin()">✈️ כניסה למשחק</button>
+    <button class="link-btn" onclick="goTeacherSetup()">כניסה למורה / פתיחת כיתה</button>
   </div>
-  <p style="color:var(--muted);font-size:0.72rem;margin-top:18px;text-align:center">OpenSky Network · Claude AI · Firebase</p>
+  <p style="color:var(--muted);font-size:0.7rem;margin-top:16px;text-align:center">OpenSky Network · Claude AI · Firebase</p>
+</div>
+
+<!-- ══ STUDENT JOIN ══ -->
+<div id="screen-join" class="screen">
+  <div class="panel">
+    <div style="font-size:1.3rem;font-weight:900;color:var(--cyan);margin-bottom:16px;text-align:center">✈️ כניסה למשחק</div>
+    <div class="card">
+      <div class="field"><label>שמך</label><input type="text" id="s-name" placeholder="הכנס שם..."/></div>
+      <div class="field">
+        <label>קוד כיתה</label>
+        <input type="text" id="s-code" placeholder="XXXX" maxlength="4"
+          style="text-transform:uppercase;font-size:1.7rem;letter-spacing:10px;text-align:center;font-weight:900"/>
+      </div>
+      <div class="err" id="join-err"></div>
+      <button class="btn btn-primary" onclick="joinRoom()">כנס</button>
+      <button class="link-btn" onclick="goHome()">← חזרה</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ TEACHER SETUP ══ -->
 <div id="screen-teacher-setup" class="screen">
-  <div class="setup-wrap">
-    <div class="panel">
-      <div style="font-size:1.4rem;font-weight:900;color:var(--cyan);margin-bottom:18px">👨‍🏫 פתיחת כיתה</div>
-      <div class="card">
-        <div class="field"><label>שמך</label><input type="text" id="teacher-name" placeholder="הכנס שם..."/></div>
-        <button class="btn btn-primary" onclick="openRoom()">🚀 פתח כיתה</button>
-        <button class="btn btn-secondary" onclick="goHome()">← חזרה</button>
-      </div>
+  <div class="panel">
+    <div style="font-size:1.3rem;font-weight:900;color:var(--cyan);margin-bottom:16px;text-align:center">👨‍🏫 פתיחת כיתה</div>
+    <div class="card">
+      <div class="field"><label>שמך</label><input type="text" id="t-name" placeholder="הכנס שם..."/></div>
+      <button class="btn btn-primary" onclick="openRoom()">🚀 פתח כיתה</button>
+      <button class="link-btn" onclick="goHome()">← חזרה</button>
     </div>
   </div>
 </div>
 
-<!-- ══ TEACHER DASH ══ -->
-<div id="screen-teacher-dash" class="screen">
-  <div class="top-bar">
-    <span class="top-bar-title">לוח מורה</span>
-    <button class="btn btn-danger" style="width:auto;padding:5px 12px;font-size:0.82rem;margin:0" onclick="closeRoom()">❌ סגור</button>
-  </div>
-  <div class="setup-wrap" style="padding:16px;align-items:flex-start">
-    <div style="width:100%">
-      <div class="card">
-        <div class="card-title">קוד לתלמידים</div>
-        <div class="room-code-big" id="display-room-code">----</div>
-        <p style="text-align:center;color:var(--muted);font-size:0.82rem">שלח קוד זה לתלמידים</p>
-      </div>
-      <div class="card">
-        <div class="card-title">🏆 ניקוד — לייב</div>
-        <table style="width:100%;border-collapse:collapse">
-          <thead><tr>
-            <th style="font-size:0.7rem;color:var(--muted);padding:4px 8px;text-align:right;border-bottom:1px solid var(--border)">#</th>
-            <th style="font-size:0.7rem;color:var(--muted);padding:4px 8px;text-align:right;border-bottom:1px solid var(--border)">שם</th>
-            <th style="font-size:0.7rem;color:var(--muted);padding:4px 8px;text-align:center;border-bottom:1px solid var(--border)">נק׳</th>
-          </tr></thead>
-          <tbody id="teacher-lb-body">
-            <tr><td colspan="3" style="color:var(--muted);text-align:center;padding:14px;font-size:0.85rem">ממתין לתלמידים...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ══ GAME (shared — student & teacher) ══ -->
+<div id="screen-game" class="screen">
 
-<!-- ══ STUDENT JOIN ══ -->
-<div id="screen-student-join" class="screen">
-  <div class="setup-wrap">
-    <div class="panel">
-      <div style="font-size:1.4rem;font-weight:900;color:var(--cyan);margin-bottom:18px">🎒 כניסה לכיתה</div>
-      <div class="card">
-        <div class="field"><label>שמך</label><input type="text" id="student-name" placeholder="הכנס שם..."/></div>
-        <div class="field">
-          <label>קוד כיתה</label>
-          <input type="text" id="room-code-input" placeholder="XXXX" maxlength="4"
-            style="text-transform:uppercase;font-size:1.8rem;letter-spacing:10px;text-align:center;font-weight:900"/>
-        </div>
-        <div class="err" id="join-error"></div>
-        <button class="btn btn-primary" onclick="joinRoom()">✈️ כנס</button>
-        <button class="btn btn-secondary" onclick="goHome()">← חזרה</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ STUDENT GAME ══ -->
-<div id="screen-student-game" class="screen">
-
-  <!-- Top bar -->
   <div class="top-bar">
     <div>
       <div class="top-bar-title">✈️ בלש הטיסות</div>
-      <div style="font-size:0.7rem;color:var(--muted)" id="room-code-display"></div>
+      <div style="font-size:0.68rem;color:var(--muted)" id="room-lbl"></div>
     </div>
-    <div class="score-chip">⭐ <span id="my-score-display">0</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="room-chip" id="room-chip" style="display:none"></div>
+      <div class="score-chip">⭐ <span id="score-el">0</span></div>
+      <button class="map-btn" onclick="manualRefresh()" style="font-size:0.75rem">🔄</button>
+    </div>
   </div>
 
   <!-- Map -->
-  <div id="map-section">
+  <div id="map-wrap">
     <div id="map"></div>
-    <div id="map-overlay">
+    <div id="map-ov">
       <div class="ov-plane">✈️</div>
-      <div class="ov-text" id="ov-text">טוען טיסות...</div>
+      <div class="ov-text">טוען טיסות...</div>
       <div class="ov-hint">לחץ על מטוס כלשהו</div>
     </div>
-    <div id="plane-count"></div>
+    <div id="pcount"></div>
     <div id="loading-more">⟳ טוען...</div>
-    <div id="map-btns">
-      <button class="map-btn" onclick="manualRefresh()">🔄 רענן</button>
-    </div>
+    <div id="map-btns"><!-- empty, refresh moved to topbar --></div>
   </div>
 
-  <!-- Bottom panel: RIGHT=question, MIDDLE=hints, LEFT=leaderboard -->
-  <div id="bottom-panel">
+  <!-- Bottom panel -->
+  <div id="bottom">
 
-    <!-- RIGHT col (RTL first): question + guess -->
+    <!-- RIGHT: question + guess -->
     <div id="q-col">
-      <div id="q-top">
+      <div id="q-body">
         <div id="q-idle" class="q-idle">✈️<br>בחר מטוס<br>מהמפה</div>
         <div id="q-active" style="display:none">
           <div class="q-question">🔍 לאן אני טס?</div>
@@ -390,48 +307,51 @@ input::placeholder{color:var(--muted)}
           <div class="q-stats" id="q-stats"></div>
         </div>
       </div>
-      <div id="guess-row">
-        <input type="text" id="guess-input" placeholder="עיר / מדינה..."
+      <div id="q-guess">
+        <input type="text" id="guess-inp" placeholder="עיר / מדינה..."
           onkeydown="if(event.key==='Enter')submitGuess()"/>
         <button class="btn btn-amber" onclick="submitGuess()">🎯 נחש</button>
       </div>
     </div>
 
-    <!-- MIDDLE col: hint carousel -->
-    <div id="hints-col">
-      <div id="hints-col-label">רמזים — לחץ לחשיפה</div>
+    <!-- MIDDLE: hints -->
+    <div id="h-col">
+      <div id="h-label">רמזים — לחץ לחשיפה</div>
       <div id="hint-carousel">
-        <div style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px">
+        <div class="idle-msg">
           <div class="idle-plane">✈️</div>
-          <div style="font-size:0.82rem">בחר מטוס מהמפה</div>
+          <div>בחר מטוס</div>
         </div>
       </div>
     </div>
 
-    <!-- LEFT col (RTL last): leaderboard full height -->
+    <!-- LEFT: leaderboard -->
     <div id="lb-col">
-      <div class="lb-col-title">🏆 ניקוד</div>
-      <div id="lb-mini-rows">
-        <div style="color:var(--muted);font-size:0.72rem;text-align:center;padding:10px">ממתין...</div>
+      <div class="lb-title">🏆 ניקוד</div>
+      <div id="lb-rows">
+        <div style="color:var(--muted);font-size:0.7rem;text-align:center;padding:8px">ממתין...</div>
       </div>
     </div>
 
-  </div><!-- /bottom-panel -->
+    <!-- RESULT overlay (absolute over #bottom) -->
+    <div id="result">
+      <div>
+        <div class="r-emoji" id="r-emoji"></div>
+      </div>
+      <div>
+        <div class="r-pts" id="r-pts"></div>
+        <div class="r-dest" id="r-dest"></div>
+        <button class="btn btn-primary" style="margin-top:8px;padding:9px 22px;width:auto" onclick="nextRound()">✈️ מטוס אחר</button>
+      </div>
+    </div>
 
-  <!-- RESULT: fixed overlay, always visible -->
-  <div id="result-box">
-    <div class="result-emoji" id="r-emoji"></div>
-    <div class="result-pts" id="r-pts"></div>
-    <div class="result-dest" id="r-dest"></div>
-    <button class="btn btn-primary" style="margin-top:6px;padding:12px 28px;width:auto;font-size:1rem" onclick="nextRound()">✈️ מטוס אחר</button>
-  </div>
+  </div><!-- /bottom -->
 
-</div><!-- /screen-student-game -->
+</div><!-- /screen-game -->
 
 <script>
-// ═══ CONFIG ═══
-const WORKER_URL='https://proud-paper-0987.nadaval56.workers.dev/';
-const FIREBASE_CONFIG={
+const WORKER='https://proud-paper-0987.nadaval56.workers.dev/';
+const FB={
   apiKey:"AIzaSyCw1RZdViDHgYbf2R_iByME3VAqJVoMH64",
   authDomain:"live-pulse-6700f.firebaseapp.com",
   databaseURL:"https://live-pulse-6700f-default-rtdb.firebaseio.com",
@@ -440,383 +360,271 @@ const FIREBASE_CONFIG={
   messagingSenderId:"362166556095",
   appId:"1:362166556095:web:4b86c174eb478641ce3d0a"
 };
-
-// ═══ FIREBASE ═══
-firebase.initializeApp(FIREBASE_CONFIG);
+firebase.initializeApp(FB);
 const db=firebase.database();
 
-// ═══ MAP STATE ═══
-let map=null;
-let planeMarkers={};   // cs -> {marker,lat,lon,heading,speed,data}
-let playedFlights=new Set();
-let lastFetchTime=0;
-let panDebounce=null;
+// ── map ──
+let map=null, markers={}, played=new Set(), lastFetch=0, panTimer=null;
 
-// ═══ APP STATE ═══
+// ── state ──
 let S={
-  role:null,teacherName:'',studentName:'',studentId:'',
-  roomCode:'',myScore:0,
-  currentCS:null,hints:[],hintIndex:0,
-  potentialPoints:3,destination:'',keywords:[],
-  gamePhase:'idle',
-  studentRef:null,leaderboardRef:null,
+  name:'',id:'',roomCode:'',role:'student',myScore:0,
+  currentCS:null,hints:[],hintIdx:0,potPts:3,dest:'',kws:[],
+  phase:'idle',  // idle|loading|guessing|revealed
+  sRef:null,lbRef:null
 };
 
-// ═══ NAV ═══
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function goHome(){showScreen('screen-landing');}
-function showTeacher(){showScreen('screen-teacher-setup');}
-function showStudent(){showScreen('screen-student-join');}
+// ── nav ──
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goHome(){show('screen-landing');}
+function goJoin(){show('screen-join');}
+function goTeacherSetup(){show('screen-teacher-setup');}
 
-// ═══ TEACHER ═══
-function genCode(){
-  return Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*33)]).join('');
-}
+// ── teacher open room ──
+function genCode(){return Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*33)]).join('');}
+
 async function openRoom(){
-  const name=document.getElementById('teacher-name').value.trim();
+  const name=document.getElementById('t-name').value.trim();
   if(!name){alert('נא להזין שם');return;}
   const code=genCode();
-  S.roomCode=code;S.teacherName=name;
+  S.name=name;S.roomCode=code;S.role='teacher';S.id='teacher_'+Date.now();
   await db.ref('rooms/'+code).set({teacher:name,created:Date.now(),active:true});
-  document.getElementById('display-room-code').textContent=code;
-  showScreen('screen-teacher-dash');
-  S.leaderboardRef=db.ref('rooms/'+code+'/students');
-  S.leaderboardRef.on('value',snap=>renderTeacherLb(snap.val()));
-}
-async function closeRoom(){
-  if(!S.roomCode||!confirm('לסגור?'))return;
-  await db.ref('rooms/'+S.roomCode).remove();
-  if(S.leaderboardRef)S.leaderboardRef.off();
-  goHome();
-}
-function renderTeacherLb(students){
-  const el=document.getElementById('teacher-lb-body');
-  if(!students){el.innerHTML='<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:14px">אין תלמידים</td></tr>';return;}
-  const sorted=Object.entries(students).map(([id,v])=>({id,...v})).sort((a,b)=>(b.score||0)-(a.score||0));
-  const medals=['🥇','🥈','🥉'];
-  el.innerHTML=sorted.map((s,i)=>`<tr>
-    <td style="padding:8px;font-size:0.9rem">${medals[i]||(i+1)}</td>
-    <td style="padding:8px;font-weight:700">${s.name}</td>
-    <td style="padding:8px;text-align:center;color:var(--amber);font-weight:900">${s.score||0}</td>
-  </tr>`).join('');
+  // register teacher as participant too
+  S.sRef=db.ref('rooms/'+code+'/students/'+S.id);
+  await S.sRef.set({name,score:0});
+  setupGame(code,'teacher');
 }
 
-// ═══ STUDENT JOIN ═══
+// ── student join ──
 async function joinRoom(){
-  const name=document.getElementById('student-name').value.trim();
-  const code=document.getElementById('room-code-input').value.trim().toUpperCase();
-  const err=document.getElementById('join-error');
+  const name=document.getElementById('s-name').value.trim();
+  const code=document.getElementById('s-code').value.trim().toUpperCase();
+  const err=document.getElementById('join-err');
   err.style.display='none';
   if(!name){err.textContent='נא להזין שם';err.style.display='block';return;}
   if(code.length!==4){err.textContent='קוד 4 תווים';err.style.display='block';return;}
   const snap=await db.ref('rooms/'+code).get();
   if(!snap.exists()||!snap.val().active){err.textContent='קוד לא נמצא';err.style.display='block';return;}
-  S.studentName=name;S.roomCode=code;S.role='student';S.myScore=0;
-  S.studentId=name.replace(/[.#$\[\]/]/g,'_')+'_'+Date.now();
-  S.studentRef=db.ref('rooms/'+code+'/students/'+S.studentId);
-  await S.studentRef.set({name,score:0});
-  S.studentRef.on('value',snap=>{
-    if(snap.exists()){
-      S.myScore=snap.val().score||0;
-      const el=document.getElementById('my-score-display');
-      if(el)el.textContent=S.myScore;
-    }
+  S.name=name;S.roomCode=code;S.role='student';S.id=name.replace(/[.#$\[\]/]/g,'_')+'_'+Date.now();
+  S.sRef=db.ref('rooms/'+code+'/students/'+S.id);
+  await S.sRef.set({name,score:0});
+  setupGame(code,'student');
+}
+
+function setupGame(code,role){
+  S.myScore=0;
+  document.getElementById('room-lbl').textContent='כיתה: '+code;
+  // Show room code chip only for teacher
+  const chip=document.getElementById('room-chip');
+  if(role==='teacher'){chip.textContent=code;chip.style.display='block';}
+  else chip.style.display='none';
+  // live score
+  S.sRef.on('value',snap=>{
+    if(snap.exists()){S.myScore=snap.val().score||0;const el=document.getElementById('score-el');if(el)el.textContent=S.myScore;}
   });
-  S.leaderboardRef=db.ref('rooms/'+code+'/students');
-  S.leaderboardRef.on('value',snap=>renderMiniLb(snap.val()));
-  document.getElementById('room-code-display').textContent='כיתה: '+code;
-  showScreen('screen-student-game');
+  // leaderboard
+  S.lbRef=db.ref('rooms/'+code+'/students');
+  S.lbRef.on('value',snap=>renderLb(snap.val()));
+  show('screen-game');
   initMap();
 }
 
-// ═══ MAP ═══
+// ── map ──
 function initMap(){
-  if(map){loadFlights();return;}
+  if(map){loadFlights(true);return;}
   setTimeout(()=>{
     map=L.map('map',{center:[32,35],zoom:7,zoomControl:true,attributionControl:true});
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:15}).addTo(map);
-    // Auto-load on pan/zoom with debounce
-    map.on('moveend',()=>{
-      clearTimeout(panDebounce);
-      panDebounce=setTimeout(()=>loadFlights(false),800);
-    });
+    map.on('moveend',()=>{clearTimeout(panTimer);panTimer=setTimeout(()=>loadFlights(false),900);});
     loadFlights(true);
-    startAnimation();
+    animate();
   },120);
 }
 
-function getBbox(){
+function bbox(){
   const b=map.getBounds();
   return{lamin:b.getSouth()-0.5,lomin:b.getWest()-0.5,lamax:b.getNorth()+0.5,lomax:b.getEast()+0.5};
 }
 
-async function loadFlights(initial=false){
-  if(initial) showOverlay('טוען טיסות...',true);
-  else{
-    const el=document.getElementById('loading-more');
-    if(el){el.style.display='block';}
-  }
-  const bb=getBbox();
+async function loadFlights(initial){
+  if(initial)showOv('טוען...',true); else{const m=document.getElementById('loading-more');if(m)m.style.display='block';}
+  const bb=bbox();
   try{
-    const url=`https://opensky-network.org/api/states/all?lamin=${bb.lamin.toFixed(2)}&lomin=${bb.lomin.toFixed(2)}&lamax=${bb.lamax.toFixed(2)}&lomax=${bb.lomax.toFixed(2)}`;
-    const resp=await fetch(url);
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
-    const data=await resp.json();
-    lastFetchTime=Date.now();
-
-    // Remove non-played markers
-    Object.entries(planeMarkers).forEach(([cs,p])=>{
-      if(!playedFlights.has(cs))map.removeLayer(p.marker);
+    const r=await fetch(`https://opensky-network.org/api/states/all?lamin=${bb.lamin.toFixed(2)}&lomin=${bb.lomin.toFixed(2)}&lamax=${bb.lamax.toFixed(2)}&lomax=${bb.lomax.toFixed(2)}`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json(); lastFetch=Date.now();
+    Object.entries(markers).forEach(([cs,p])=>{if(!played.has(cs))map.removeLayer(p.marker);});
+    const kept={};Object.entries(markers).forEach(([cs,p])=>{if(played.has(cs))kept[cs]=p;});
+    markers={...kept};
+    (d.states||[]).filter(f=>f[1]&&f[1].trim()&&!f[8]&&f[5]&&f[6]&&f[7]>500).forEach(f=>{
+      const cs=f[1].trim();if(played.has(cs))return;
+      const mk=L.marker([f[6],f[5]],{icon:pIcon(f[10]||0,false,false)}).addTo(map);
+      const alt=f[7]?Math.round(f[7]/100)*100+'מ׳':'?', spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
+      mk.bindTooltip('<b>'+cs+'</b><br>'+(f[2]||'')+'<br>'+alt+' · '+spd,{direction:'top',className:'ptip',offset:[0,-10]});
+      mk.on('click',()=>clickFlight(cs));
+      markers[cs]={marker:mk,lat:f[6],lon:f[5],heading:f[10]||0,speed:f[9]||0,data:f};
     });
-    const kept={};
-    Object.entries(planeMarkers).forEach(([cs,p])=>{if(playedFlights.has(cs))kept[cs]=p;});
-    planeMarkers={...kept};
-
-    const flights=(data.states||[]).filter(f=>f[1]&&f[1].trim()&&!f[8]&&f[5]&&f[6]&&f[7]>500);
-    flights.forEach(f=>{
-      const cs=f[1].trim();
-      if(playedFlights.has(cs))return;
-      const marker=L.marker([f[6],f[5]],{icon:planeIcon(f[10]||0,false,false)}).addTo(map);
-      const alt=f[7]?Math.round(f[7]/100)*100+'מ׳':'?';
-      const spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
-      marker.bindTooltip('<b>'+cs+'</b><br>'+(f[2]||'')+'<br>'+alt+' · '+spd,
-        {direction:'top',className:'plane-tip',offset:[0,-10]});
-      marker.on('click',()=>onFlightClick(cs));
-      planeMarkers[cs]={marker,lat:f[6],lon:f[5],heading:f[10]||0,speed:f[9]||0,data:f};
-    });
-
-    const active=Object.keys(planeMarkers).length-playedFlights.size;
-    const el=document.getElementById('plane-count');
-    if(el)el.textContent=active>0?active+' מטוסים':'';
-    hideOverlay();
-  }catch(e){
-    if(initial)showOverlay('שגיאה: '+e.message,false);
-  }finally{
-    const el=document.getElementById('loading-more');
-    if(el)el.style.display='none';
-  }
+    const cnt=Object.keys(markers).length-played.size;
+    const pc=document.getElementById('pcount');if(pc)pc.textContent=cnt>0?cnt+' מטוסים':'';
+    hideOv();
+  }catch(e){if(initial)showOv('שגיאה: '+e.message,false);}
+  finally{const m=document.getElementById('loading-more');if(m)m.style.display='none';}
 }
 
-function manualRefresh(){
-  playedFlights=new Set();
-  resetGameUI();
-  loadFlights(false);
-}
+function manualRefresh(){played=new Set();resetUI();loadFlights(false);}
 
-// ═══ ICON ═══
-function planeIcon(h,selected,played){
-  const color=played?'#1c3a4a':(selected?'#ffb830':'#00d4ff');
-  const glow=played?'none':(selected?'drop-shadow(0 0 7px #ffb830)':'drop-shadow(0 0 5px #00d4ff)');
-  const sz=selected?36:26;
+function pIcon(h,sel,grey){
+  const color=grey?'#1c3a4a':(sel?'#ffb830':'#00d4ff');
+  const glow=grey?'none':(sel?'drop-shadow(0 0 7px #ffb830)':'drop-shadow(0 0 5px #00d4ff)');
+  const sz=sel?34:26;
   return L.divIcon({
-    html:'<div style="transform:rotate('+(h||0)+'deg);filter:'+glow+';font-size:'+(sz-6)+'px;color:'+color+';line-height:1;transition:all 0.4s">✈</div>',
+    html:'<div style="transform:rotate('+(h||0)+'deg);filter:'+glow+';font-size:'+(sz-6)+'px;color:'+color+';line-height:1;transition:all 0.3s">✈</div>',
     className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]
   });
 }
 
-// ═══ ANIMATION ═══
-function startAnimation(){
-  function step(){
-    const elapsed=(Date.now()-lastFetchTime)/1000;
-    Object.entries(planeMarkers).forEach(([cs,p])=>{
-      if(playedFlights.has(cs)||!p.speed||!p.heading)return;
-      const d=p.speed*elapsed;
-      const R=6371000;
-      const hr=p.heading*Math.PI/180;
-      p.marker.setLatLng([
-        p.lat+d*Math.cos(hr)/R*(180/Math.PI),
-        p.lon+d*Math.sin(hr)/(R*Math.cos(p.lat*Math.PI/180))*(180/Math.PI)
-      ]);
-    });
-    requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-
-// ═══ OVERLAY ═══
-function showOverlay(txt,spinner){
-  const el=document.getElementById('map-overlay');if(!el)return;
-  el.classList.remove('hidden');
-  el.innerHTML=(spinner?'<div class="ov-plane">✈️</div>':'')
-    +'<div class="ov-text">'+txt+'</div>'
-    +'<div class="ov-hint">לחץ על מטוס כלשהו</div>';
-}
-function hideOverlay(){const el=document.getElementById('map-overlay');if(el)el.classList.add('hidden');}
-
-// ═══ GAME ═══
-function onFlightClick(cs){
-  if(S.gamePhase==='loading'||S.gamePhase==='guessing')return;
-  if(playedFlights.has(cs))return;
-  const p=planeMarkers[cs];if(!p)return;
-
-  // highlight
-  Object.entries(planeMarkers).forEach(([c,pl])=>{
-    if(!playedFlights.has(c))pl.marker.setIcon(planeIcon(pl.heading,c===cs,false));
+function animate(){
+  requestAnimationFrame(animate);
+  const el=(Date.now()-lastFetch)/1000;
+  Object.entries(markers).forEach(([cs,p])=>{
+    if(played.has(cs)||!p.speed||!p.heading)return;
+    const d=p.speed*el, R=6371000, hr=p.heading*Math.PI/180;
+    p.marker.setLatLng([p.lat+d*Math.cos(hr)/R*(180/Math.PI), p.lon+d*Math.sin(hr)/(R*Math.cos(p.lat*Math.PI/180))*(180/Math.PI)]);
   });
+}
 
-  S.currentCS=cs;S.hints=[];S.hintIndex=0;
-  S.potentialPoints=3;S.destination='';S.keywords=[];
-  S.gamePhase='loading';
+function showOv(t,sp){const el=document.getElementById('map-ov');if(!el)return;el.classList.remove('gone');el.innerHTML=(sp?'<div class="ov-plane">✈️</div>':'')+'<div class="ov-text">'+t+'</div><div class="ov-hint">לחץ על מטוס כלשהו</div>';}
+function hideOv(){const el=document.getElementById('map-ov');if(el)el.classList.add('gone');}
 
+// ── game ──
+function clickFlight(cs){
+  if(S.phase==='loading'||S.phase==='guessing')return;
+  if(played.has(cs))return;
+  const p=markers[cs];if(!p)return;
+  Object.entries(markers).forEach(([c,pl])=>{if(!played.has(c))pl.marker.setIcon(pIcon(pl.heading,c===cs,false));});
+  S.currentCS=cs;S.hints=[];S.hintIdx=0;S.potPts=3;S.dest='';S.kws=[];S.phase='loading';
   const f=p.data;
-  // Update right col
-  const altStr=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
-  const spdStr=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
-  const dirStr=dir(f[10]);
+  const alt=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
+  const spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
+  // update q-col
   document.getElementById('q-idle').style.display='none';
   document.getElementById('q-active').style.display='block';
   document.getElementById('q-cs').textContent='✈ '+cs+' · '+(f[2]||'');
-  document.getElementById('q-stats').innerHTML=
-    '📍 '+altStr+'<br>💨 '+spdStr+'<br>🧭 '+dirStr;
-
-  // Show loading in carousel
+  document.getElementById('q-stats').innerHTML='📍 '+alt+'<br>💨 '+spd+'<br>🧭 '+ddir(f[10]);
+  document.getElementById('q-guess').style.display='none';
+  // hint carousel loading
   document.getElementById('hint-carousel').innerHTML=
-    '<div style="display:flex;align-items:center;justify-content:center;width:100%;gap:10px;color:var(--muted)">'
-    +'<span style="font-size:1.8rem;animation:flyA 1s ease-in-out infinite;display:inline-block">🤖</span>'
-    +'<span>קלוד מכין רמזים...</span></div>';
-  document.getElementById('guess-row').style.display='none';
-
+    '<div class="idle-msg"><span style="font-size:1.6rem;animation:flyA 1s ease-in-out infinite;display:inline-block">🤖</span><div>קלוד מכין רמזים...</div></div>';
   fetchHints(cs,f[2],f[7],f[9],f[10]);
 }
 
 async function fetchHints(cs,country,alt,vel,hdg){
   try{
-    const resp=await fetch(WORKER_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({callsign:cs,originCountry:country,altitude:alt,velocity:vel,heading:hdg})
-    });
-    const data=await resp.json();
-    if(data.error)throw new Error(data.error);
-    if(!data.destination||data.destination.trim().length<2){
-      document.getElementById('hint-carousel').innerHTML=
-        '<div style="color:var(--muted);font-size:0.85rem;padding:12px;text-align:center">יעד לא ידוע<br>בחר מטוס אחר</div>';
-      S.gamePhase='idle';
-      return;
+    const r=await fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({callsign:cs,originCountry:country,altitude:alt,velocity:vel,heading:hdg})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    if(!d.destination||d.destination.trim().length<2){
+      document.getElementById('hint-carousel').innerHTML='<div class="idle-msg" style="font-size:0.8rem">יעד לא ידוע<br>בחר מטוס אחר</div>';
+      S.phase='idle';return;
     }
-    S.hints=data.hints;S.destination=data.destination;S.keywords=data.keywords||[];
-    S.gamePhase='guessing';
+    S.hints=d.hints;S.dest=d.destination;S.kws=d.keywords||[];
+    S.phase='guessing';
     buildCarousel();
-    document.getElementById('guess-row').style.display='flex';
-    setTimeout(()=>{const i=document.getElementById('guess-input');if(i)i.focus();},150);
+    document.getElementById('q-guess').style.display='block';
+    setTimeout(()=>{const i=document.getElementById('guess-inp');if(i)i.focus();},150);
   }catch(e){
-    document.getElementById('hint-carousel').innerHTML=
-      '<div style="color:var(--red);padding:12px;font-size:0.85rem">שגיאה: '+e.message+'</div>';
-    S.gamePhase='idle';
+    document.getElementById('hint-carousel').innerHTML='<div class="idle-msg" style="color:var(--red);font-size:0.8rem">שגיאה: '+e.message+'</div>';
+    S.phase='idle';
   }
 }
 
 function buildCarousel(){
   const labels=[{t:'רמז 1',d:'קשה 🔴'},{t:'רמז 2',d:'בינוני 🟡'},{t:'רמז 3',d:'קל 🟢'}];
-  const c=document.getElementById('hint-carousel');
-  c.innerHTML='';
+  const c=document.getElementById('hint-carousel'); c.innerHTML='';
   S.hints.forEach((hint,i)=>{
     const card=document.createElement('div');
-    card.id='hc-'+i;
-    card.className='hint-card '+(i===0?'unlocked':'locked');
-    card.innerHTML='<div class="hint-card-label">'+labels[i].t+' — '+labels[i].d+'</div>'
-      +(i===0
-        ?'<div class="hint-card-text">'+hint+'</div>'
-        :'<div class="hint-card-text">לחץ לחשיפה</div><div class="hint-minus">−1 נקודה</div>');
+    card.id='hc'+i; card.className='hcard '+(i===0?'on':'off');
+    card.innerHTML='<div class="hcard-lbl">'+labels[i].t+' — '+labels[i].d+'</div>'
+      +(i===0?'<div class="hcard-txt">'+hint+'</div>':'<div class="hcard-txt">לחץ לחשיפה</div><div class="hcard-minus">−1 נקודה</div>');
     if(i>0)card.onclick=()=>unlockHint(i);
     c.appendChild(card);
   });
 }
 
 function unlockHint(i){
-  if(S.gamePhase!=='guessing')return;
-  const card=document.getElementById('hc-'+i);
-  if(!card||card.classList.contains('unlocked'))return;
-  card.classList.remove('locked');card.classList.add('unlocked');card.onclick=null;
-  card.querySelector('.hint-card-text').textContent=S.hints[i];
-  const minus=card.querySelector('.hint-minus');if(minus)minus.remove();
-  S.hintIndex=i;S.potentialPoints=Math.max(1,3-i);
+  if(S.phase!=='guessing')return;
+  const card=document.getElementById('hc'+i);
+  if(!card||card.classList.contains('on'))return;
+  card.classList.remove('off');card.classList.add('on');card.onclick=null;
+  card.querySelector('.hcard-txt').textContent=S.hints[i];
+  const m=card.querySelector('.hcard-minus');if(m)m.remove();
+  S.hintIdx=i; S.potPts=Math.max(1,3-i);
   card.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
 async function submitGuess(){
-  if(S.gamePhase!=='guessing')return;
-  const inp=document.getElementById('guess-input');
+  if(S.phase!=='guessing')return;
+  const inp=document.getElementById('guess-inp');
   if(!inp)return;
   const guess=inp.value.trim().toLowerCase();
   if(!guess)return;
-  const dest=S.destination.toLowerCase();
-  const kws=S.keywords.map(k=>k.toLowerCase());
-  const correct=dest.includes(guess)||guess.includes(dest)||kws.some(k=>k&&(guess.includes(k)||k.includes(guess)));
-  const pts=correct?S.potentialPoints:0;
-  S.gamePhase='revealed';
-
-  document.getElementById('r-emoji').textContent=correct?'🎉':'😔';
-  document.getElementById('r-pts').textContent=correct?'+'+pts+' נקודות!':'';
-  document.getElementById('r-dest').innerHTML='היעד: <strong>'+S.destination+'</strong>';
-  document.getElementById('result-box').classList.add('show');
-
-  if(correct&&pts>0&&S.studentRef){
-    await S.studentRef.transaction(cur=>{
-      if(!cur)return{name:S.studentName,score:pts};
-      cur.score=(cur.score||0)+pts;return cur;
-    });
+  const dest=S.dest.toLowerCase();
+  const kws=S.kws.map(k=>k.toLowerCase());
+  const ok=dest.includes(guess)||guess.includes(dest)||kws.some(k=>k&&(guess.includes(k)||k.includes(guess)));
+  const pts=ok?S.potPts:0;
+  S.phase='revealed';
+  // show result
+  document.getElementById('r-emoji').textContent=ok?'🎉':'😔';
+  document.getElementById('r-pts').textContent=ok?'+'+pts+' נקודות!':'';
+  document.getElementById('r-dest').innerHTML='היעד: <strong>'+S.dest+'</strong>';
+  document.getElementById('result').classList.add('show');
+  if(ok&&pts>0&&S.sRef){
+    await S.sRef.transaction(cur=>{if(!cur)return{name:S.name,score:pts};cur.score=(cur.score||0)+pts;return cur;});
   }
 }
 
 function nextRound(){
-  // Grey out played plane
   if(S.currentCS){
-    playedFlights.add(S.currentCS);
-    const p=planeMarkers[S.currentCS];
-    if(p){p.marker.setIcon(planeIcon(p.heading,false,true));p.marker.off('click');}
+    played.add(S.currentCS);
+    const p=markers[S.currentCS];
+    if(p){p.marker.setIcon(pIcon(p.heading,false,true));p.marker.off('click');}
   }
-  resetGameUI();
+  document.getElementById('result').classList.remove('show');
+  resetUI();
 }
 
-function resetGameUI(){
-  document.getElementById('result-box').classList.remove('show');
+function resetUI(){
   document.getElementById('hint-carousel').innerHTML=
-    '<div id="idle-msg" style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px">'
-    +'<div class="idle-plane">✈️</div><div>לחץ על מטוס<br>כדי להתחיל</div></div>';
-  document.getElementById('guess-row').style.display='none';
-  const gi=document.getElementById('guess-input');if(gi)gi.value='';
+    '<div class="idle-msg"><div class="idle-plane">✈️</div><div>בחר מטוס</div></div>';
   document.getElementById('q-idle').style.display='block';
   document.getElementById('q-active').style.display='none';
-  // Deselect all
-  Object.entries(planeMarkers).forEach(([cs,p])=>{
-    if(!playedFlights.has(cs))p.marker.setIcon(planeIcon(p.heading,false,false));
-  });
-  S.currentCS=null;S.gamePhase='idle';
+  document.getElementById('q-guess').style.display='none';
+  const gi=document.getElementById('guess-inp');if(gi)gi.value='';
+  S.currentCS=null;S.phase='idle';
+  Object.entries(markers).forEach(([cs,p])=>{if(!played.has(cs))p.marker.setIcon(pIcon(p.heading,false,false));});
 }
 
-// ═══ MINI LEADERBOARD ═══
-function renderMiniLb(students){
-  const el=document.getElementById('lb-mini-rows');if(!el)return;
-  if(!students){el.innerHTML='<div style="color:var(--muted);font-size:0.72rem;text-align:center;padding:8px">ממתין...</div>';return;}
+function renderLb(students){
+  const el=document.getElementById('lb-rows');if(!el)return;
+  if(!students){el.innerHTML='<div style="color:var(--muted);font-size:0.7rem;text-align:center;padding:8px">ממתין...</div>';return;}
   const sorted=Object.entries(students).map(([id,v])=>({id,...v})).sort((a,b)=>(b.score||0)-(a.score||0));
   const medals=['🥇','🥈','🥉'];
   el.innerHTML=sorted.map((s,i)=>
-    '<div class="lb-mini-row '+(s.id===S.studentId?'me':'')+'">'
-    +'<span class="lb-mini-medal">'+(medals[i]||(i+1)+'.')+'</span>'
-    +'<span class="lb-mini-name">'+s.name+'</span>'
-    +'<span class="lb-mini-score">'+(s.score||0)+'</span>'
+    '<div class="lb-row '+(s.id===S.id?'me':'')+'">'
+    +'<span class="lb-med">'+(medals[i]||(i+1)+'.')+'</span>'
+    +'<span class="lb-name">'+s.name+'</span>'
+    +'<span class="lb-pts">'+(s.score||0)+'</span>'
     +'</div>').join('');
 }
 
-// ═══ HELPERS ═══
-function dir(h){
+function ddir(h){
   if(h==null)return '?';
   return ['צ׳','צ-מ','מ׳','ד-מ','ד׳','ד-מ','מע׳','צ-מ'][Math.round(h/45)%8];
 }
 
-// ═══ CLEANUP ═══
-(async()=>{
-  try{
-    const snap=await db.ref('rooms').get();if(!snap.exists())return;
-    const now=Date.now(),del={};
-    snap.forEach(c=>{if(now-c.val().created>86400000)del[c.key]=null;});
-    if(Object.keys(del).length)await db.ref('rooms').update(del);
-  }catch(e){}
-})();
+// cleanup old rooms
+(async()=>{try{const s=await db.ref('rooms').get();if(!s.exists())return;const now=Date.now(),d={};s.forEach(c=>{if(now-c.val().created>86400000)d[c.key]=null;});if(Object.keys(d).length)await db.ref('rooms').update(d);}catch(e){}})();
 </script>
 </body>
 </html>
