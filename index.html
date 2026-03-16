@@ -2,581 +2,278 @@
 <html dir="rtl" lang="he">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>✈️ בלש הטיסות</title>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
 :root {
   --bg: #050d1a;
   --bg2: #0b1929;
   --bg3: #0f2035;
   --cyan: #00d4ff;
-  --cyan-dim: rgba(0,212,255,0.15);
+  --cyan-dim: rgba(0,212,255,0.12);
   --amber: #ffb830;
   --green: #00e676;
   --red: #ff5252;
   --text: #cde8f8;
   --muted: #4a7a9a;
   --border: rgba(0,212,255,0.18);
-  --glow: 0 0 20px rgba(0,212,255,0.25);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
+html, body { height: 100%; }
 body {
   font-family: 'Heebo', sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
   direction: rtl;
   overflow-x: hidden;
+  height: 100%;
 }
-
-/* Radar background */
-body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120vw;
-  height: 120vw;
-  background: radial-gradient(circle, rgba(0,212,255,0.04) 0%, transparent 65%);
-  pointer-events: none;
-  z-index: 0;
+.screen { display: none; min-height: 100%; }
+.screen.active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+#screen-landing {
+  align-items: center; justify-content: center; padding: 32px 24px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 60%);
 }
-
-.screen { display: none; padding: 20px; max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
-.screen.active { display: block; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ── LOGO ── */
-.logo {
-  text-align: center;
-  padding: 32px 0 16px;
-}
-.logo-icon {
-  font-size: 3.5rem;
-  display: block;
+.logo-icon { font-size:5rem; display:block; text-align:center;
   animation: float 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 18px var(--cyan));
-}
-@keyframes float {
-  0%,100% { transform: translateY(0) rotate(-5deg); }
-  50% { transform: translateY(-8px) rotate(5deg); }
-}
-.logo-title {
-  font-size: 2.4rem;
-  font-weight: 900;
-  color: var(--cyan);
-  letter-spacing: -1px;
-  text-shadow: 0 0 30px rgba(0,212,255,0.5);
-}
-.logo-sub {
-  font-size: 0.95rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-/* ── CARDS ── */
-.card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 22px;
-  margin-bottom: 14px;
-  box-shadow: var(--glow);
-}
-.card-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 14px;
-}
-
-/* ── BUTTONS ── */
-.btn {
-  display: block;
-  width: 100%;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Heebo', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 10px;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-.btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0.08);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.btn:hover::after { opacity: 1; }
-.btn:active { transform: scale(0.98); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.btn-primary {
-  background: var(--cyan);
-  color: var(--bg);
-  box-shadow: 0 4px 20px rgba(0,212,255,0.35);
-}
-.btn-secondary {
-  background: var(--bg3);
-  color: var(--cyan);
-  border: 1px solid var(--border);
-}
-.btn-amber {
-  background: var(--amber);
-  color: var(--bg);
-  box-shadow: 0 4px 20px rgba(255,184,48,0.35);
-}
-.btn-danger {
-  background: transparent;
-  color: var(--red);
-  border: 1px solid rgba(255,82,82,0.3);
-}
-
-/* ── INPUTS ── */
-.field { margin-bottom: 14px; }
-.field label {
-  display: block;
-  font-size: 0.82rem;
-  color: var(--muted);
-  font-weight: 600;
-  margin-bottom: 7px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-input {
-  width: 100%;
-  padding: 13px 16px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  color: var(--text);
-  font-family: 'Heebo', sans-serif;
-  font-size: 1rem;
-  direction: rtl;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-input:focus {
-  outline: none;
-  border-color: var(--cyan);
-  box-shadow: 0 0 0 3px rgba(0,212,255,0.12);
-}
-input::placeholder { color: var(--muted); }
-
-/* ── ROOM CODE ── */
-.room-code-big {
-  font-size: 3.8rem;
-  font-weight: 900;
-  text-align: center;
-  color: var(--amber);
-  letter-spacing: 12px;
-  padding: 24px 16px;
-  background: rgba(255,184,48,0.07);
-  border-radius: 16px;
-  border: 2px solid rgba(255,184,48,0.25);
-  margin: 12px 0;
-  text-shadow: 0 0 30px rgba(255,184,48,0.5);
-}
-.room-code-label {
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.88rem;
-  margin-top: 6px;
-}
-
-/* ── FLIGHT ITEMS ── */
-.flight-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  margin-bottom: 9px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.flight-item:hover {
-  border-color: var(--cyan);
-  background: var(--cyan-dim);
-  transform: translateX(-3px);
-}
-.flight-callsign {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--cyan);
-  letter-spacing: 0.5px;
-}
-.flight-meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
-.flight-arrow {
-  color: var(--cyan);
-  font-size: 1.3rem;
-  opacity: 0.6;
-}
-
-/* ── HINTS ── */
-.hint-box {
-  padding: 18px 20px;
-  background: rgba(255,184,48,0.06);
-  border: 1px solid rgba(255,184,48,0.25);
-  border-radius: 14px;
-  margin-bottom: 12px;
-  line-height: 1.65;
-  animation: slideIn 0.3s ease;
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.hint-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--amber);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 8px;
-}
-.hint-text { color: var(--text); font-size: 1rem; }
-
-/* ── POINTS BADGE ── */
-.points-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(255,184,48,0.15);
-  color: var(--amber);
-  border: 1px solid rgba(255,184,48,0.35);
-  border-radius: 20px;
-  padding: 5px 14px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-/* ── LEADERBOARD ── */
-.lb-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 11px 14px;
-  border-radius: 11px;
-  margin-bottom: 7px;
-  background: var(--bg3);
-  border: 1px solid transparent;
-  transition: all 0.3s;
-}
-.lb-row.me {
-  background: var(--cyan-dim);
-  border-color: rgba(0,212,255,0.3);
-}
-.lb-rank { color: var(--muted); font-size: 0.85rem; min-width: 24px; }
-.lb-name { font-weight: 700; flex: 1; padding: 0 10px; }
-.lb-score { color: var(--amber); font-weight: 800; font-size: 1.05rem; }
-.lb-me-tag {
-  font-size: 0.7rem;
-  color: var(--cyan);
-  background: rgba(0,212,255,0.1);
-  border-radius: 8px;
-  padding: 2px 7px;
-  margin-right: 6px;
-}
-
-/* ── STATUS MESSAGES ── */
-.loading-box {
-  text-align: center;
-  padding: 36px 20px;
-  color: var(--muted);
-}
-.spinner-plane {
-  font-size: 2.5rem;
-  display: inline-block;
-  animation: fly 1.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 8px var(--cyan));
-}
-@keyframes fly {
-  0%,100% { transform: translateX(0) rotate(-10deg); }
-  50% { transform: translateX(8px) rotate(10deg); }
-}
-.loading-text { margin-top: 12px; font-size: 0.95rem; }
-
-.result-box {
-  text-align: center;
-  padding: 24px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-}
-.result-box.correct {
-  background: rgba(0,230,118,0.08);
-  border: 1px solid rgba(0,230,118,0.3);
-}
-.result-box.wrong {
-  background: rgba(255,82,82,0.08);
-  border: 1px solid rgba(255,82,82,0.3);
-}
-.result-emoji { font-size: 2.5rem; display: block; margin-bottom: 10px; }
-.result-pts { font-size: 2rem; font-weight: 900; color: var(--amber); }
-.result-dest { font-size: 1.1rem; margin-top: 8px; }
-.result-dest strong { color: var(--cyan); }
-
-/* ── MY SCORE CHIP ── */
-.my-score-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,184,48,0.1);
-  border: 1px solid rgba(255,184,48,0.25);
-  border-radius: 20px;
-  padding: 5px 14px;
-  font-size: 0.9rem;
-}
-.my-score-num { font-weight: 900; color: var(--amber); font-size: 1.1rem; }
-
-/* ── TOP BAR ── */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding: 4px 0;
-}
-.section-title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-/* ── ERROR ── */
-.error-msg {
-  color: var(--red);
-  font-size: 0.88rem;
-  padding: 8px 12px;
-  background: rgba(255,82,82,0.08);
-  border-radius: 8px;
-  margin-bottom: 10px;
-  display: none;
-}
-
-/* ── MINI LEADERBOARD TOGGLE ── */
-.lb-toggle {
-  text-align: center;
-  margin-top: 16px;
-}
-.lb-toggle button {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-size: 0.82rem;
-  cursor: pointer;
-  font-family: 'Heebo', sans-serif;
-  transition: all 0.2s;
-}
-.lb-toggle button:hover { border-color: var(--cyan); color: var(--cyan); }
+  filter: drop-shadow(0 0 24px var(--cyan)); }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(-6deg)} 50%{transform:translateY(-10px) rotate(6deg)} }
+.logo-title { font-size:2.8rem; font-weight:900; text-align:center; color:var(--cyan);
+  letter-spacing:-1px; text-shadow:0 0 40px rgba(0,212,255,0.5); margin:12px 0 6px; }
+.logo-sub { text-align:center; color:var(--muted); font-size:1rem; margin-bottom:40px; }
+.panel { width:100%; max-width:440px; }
+.btn { display:block; width:100%; padding:15px 20px; border:none; border-radius:14px;
+  font-family:'Heebo',sans-serif; font-size:1.05rem; font-weight:700;
+  cursor:pointer; margin-bottom:10px; transition:all 0.2s; }
+.btn:active { transform:scale(0.98); }
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-primary { background:var(--cyan); color:var(--bg); box-shadow:0 4px 24px rgba(0,212,255,0.3); }
+.btn-secondary { background:var(--bg2); color:var(--cyan); border:1px solid var(--border); }
+.btn-amber { background:var(--amber); color:var(--bg); box-shadow:0 4px 24px rgba(255,184,48,0.3); }
+.btn-danger { background:transparent; color:var(--red); border:1px solid rgba(255,82,82,0.3); }
+.field { margin-bottom:16px; }
+.field label { display:block; font-size:0.8rem; color:var(--muted); font-weight:600;
+  margin-bottom:7px; text-transform:uppercase; letter-spacing:1px; }
+input { width:100%; padding:13px 16px; background:var(--bg3); border:1px solid var(--border);
+  border-radius:12px; color:var(--text); font-family:'Heebo',sans-serif; font-size:1rem;
+  direction:rtl; transition:border-color 0.2s, box-shadow 0.2s; }
+input:focus { outline:none; border-color:var(--cyan); box-shadow:0 0 0 3px rgba(0,212,255,0.12); }
+input::placeholder { color:var(--muted); }
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:18px;
+  padding:20px; margin-bottom:14px; box-shadow:0 0 20px rgba(0,212,255,0.1); }
+.card-title { font-size:0.78rem; font-weight:600; color:var(--muted);
+  text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; }
+.setup-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:24px; }
+.room-code-big { font-size:4rem; font-weight:900; text-align:center; color:var(--amber);
+  letter-spacing:14px; padding:24px; border-radius:16px;
+  background:rgba(255,184,48,0.07); border:2px solid rgba(255,184,48,0.25);
+  text-shadow:0 0 30px rgba(255,184,48,0.5); margin:10px 0; }
+.top-bar { background:rgba(5,13,26,0.95); border-bottom:1px solid var(--border);
+  padding:10px 16px; display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0; backdrop-filter:blur(8px); z-index:1000; }
+.top-bar-title { font-weight:800; font-size:1rem; color:var(--cyan); }
+.score-chip { background:rgba(255,184,48,0.12); border:1px solid rgba(255,184,48,0.3);
+  border-radius:20px; padding:4px 14px; font-size:0.9rem; color:var(--amber); font-weight:800; }
+.back-btn { background:none; border:none; color:var(--muted); cursor:pointer;
+  font-size:0.85rem; font-family:'Heebo',sans-serif; padding:4px 8px; }
+#map-container { flex:1; position:relative; min-height:0; }
+#map { width:100%; height:100%; min-height:300px; }
+#map-overlay { position:absolute; inset:0; z-index:999;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(5,13,26,0.85); backdrop-filter:blur(4px);
+  flex-direction:column; gap:12px; }
+#map-overlay.hidden { display:none; }
+.overlay-plane { font-size:3rem; animation:flyAnim 1.5s ease-in-out infinite; }
+@keyframes flyAnim { 0%,100%{transform:translateX(-8px) rotate(-10deg)} 50%{transform:translateX(8px) rotate(10deg)} }
+.overlay-text { color:var(--text); font-size:1rem; }
+.overlay-hint { background:rgba(0,212,255,0.1); border:1px solid var(--border);
+  border-radius:12px; padding:10px 20px; color:var(--muted); font-size:0.88rem;
+  max-width:260px; text-align:center; }
+#refresh-btn { position:absolute; bottom:16px; left:16px; z-index:998;
+  background:var(--bg2); border:1px solid var(--border); color:var(--cyan);
+  border-radius:12px; padding:8px 16px; font-family:'Heebo',sans-serif;
+  font-size:0.88rem; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.5); }
+#plane-count { position:absolute; top:12px; right:12px; z-index:998;
+  background:rgba(5,13,26,0.85); border:1px solid var(--border);
+  border-radius:10px; padding:5px 12px; font-size:0.8rem; color:var(--muted); }
+#hint-panel { background:var(--bg2); border-top:1px solid var(--border);
+  padding:0; flex-shrink:0; max-height:0; overflow:hidden; transition:max-height 0.35s ease; }
+#hint-panel.open { max-height:80vh; overflow-y:auto; }
+#hint-panel-inner { padding:18px 18px 28px; }
+.flight-header { display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:14px; gap:8px; flex-wrap:wrap; }
+.flight-id { font-size:1.5rem; font-weight:900; color:var(--cyan); }
+.flight-stats { display:flex; gap:12px; flex-wrap:wrap; }
+.stat { text-align:center; }
+.stat-val { font-weight:800; font-size:0.95rem; }
+.stat-lbl { font-size:0.7rem; color:var(--muted); margin-top:2px; }
+.hint-box { padding:14px 16px; background:rgba(255,184,48,0.06);
+  border:1px solid rgba(255,184,48,0.22); border-radius:12px;
+  margin-bottom:10px; animation:slideIn 0.3s ease; }
+@keyframes slideIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.hint-label { font-size:0.72rem; font-weight:700; color:var(--amber);
+  text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
+.hint-text { font-size:0.97rem; line-height:1.6; }
+.pts-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.pts-label { color:var(--muted); font-size:0.85rem; }
+.pts-value { color:var(--amber); font-weight:900; font-size:1.2rem; }
+.guess-row { display:flex; gap:10px; margin-bottom:10px; }
+.guess-row input { flex:1; margin:0; }
+.guess-row .btn { width:auto; padding:13px 20px; margin:0; white-space:nowrap; }
+.result-box { text-align:center; padding:20px; border-radius:14px; margin-bottom:12px; }
+.result-box.correct { background:rgba(0,230,118,0.08); border:1px solid rgba(0,230,118,0.3); }
+.result-box.wrong { background:rgba(255,82,82,0.08); border:1px solid rgba(255,82,82,0.3); }
+.result-emoji { font-size:2.2rem; display:block; }
+.result-pts { font-size:1.8rem; font-weight:900; color:var(--amber); }
+.result-dest { font-size:0.95rem; margin-top:6px; }
+.result-dest strong { color:var(--cyan); }
+.next-hint-btn { width:100%; padding:11px; background:var(--bg3);
+  border:1px solid var(--border); border-radius:11px; color:var(--muted);
+  font-family:'Heebo',sans-serif; font-size:0.9rem; cursor:pointer; margin-bottom:8px; transition:all 0.2s; }
+.next-hint-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+#lb-overlay { position:fixed; inset:0; z-index:2000;
+  background:rgba(5,13,26,0.96); backdrop-filter:blur(8px);
+  display:none; flex-direction:column; padding:24px; overflow-y:auto; }
+#lb-overlay.open { display:flex; }
+.lb-row { display:flex; align-items:center; padding:12px 14px;
+  background:var(--bg3); border:1px solid transparent;
+  border-radius:12px; margin-bottom:8px; transition:all 0.3s; }
+.lb-row.me { background:var(--cyan-dim); border-color:rgba(0,212,255,0.3); }
+.lb-rank { color:var(--muted); font-size:0.9rem; min-width:28px; }
+.lb-name { flex:1; font-weight:700; padding:0 10px; }
+.lb-score { color:var(--amber); font-weight:900; font-size:1.05rem; }
+.lb-me-tag { font-size:0.68rem; color:var(--cyan); background:rgba(0,212,255,0.1);
+  border-radius:6px; padding:2px 7px; margin-right:5px; }
+#screen-teacher-dash .setup-wrap { align-items:flex-start; padding-top:16px; }
+.err { color:var(--red); font-size:0.88rem; padding:8px 12px;
+  background:rgba(255,82,82,0.08); border-radius:8px; margin-bottom:10px; display:none; }
+.leaflet-tile-pane { filter:brightness(0.85) saturate(1.2); }
+.leaflet-control-zoom a { background:var(--bg2) !important; color:var(--cyan) !important; border-color:var(--border) !important; }
+.plane-tip { background:var(--bg2) !important; border:1px solid var(--border) !important;
+  color:var(--text) !important; font-family:'Heebo',sans-serif !important; font-size:0.82rem !important; }
 </style>
 </head>
 <body>
 
-<!-- ══════════ SCREEN 0: Landing ══════════ -->
-<div id="screen-landing" class="screen active">
-  <div class="logo">
-    <span class="logo-icon">✈️</span>
-    <div class="logo-title">בלש הטיסות</div>
-    <div class="logo-sub">נחש לאן הטיסה מועדת!</div>
-  </div>
-  <div style="margin-top: 32px;">
+<!-- LANDING -->
+<div id="screen-landing" class="screen">
+  <span class="logo-icon">✈️</span>
+  <div class="logo-title">בלש הטיסות</div>
+  <div class="logo-sub">נחש לאן הטיסה מועדת — טיסות חי מעל ישראל</div>
+  <div class="panel">
     <button class="btn btn-primary" onclick="showTeacher()">👨‍🏫 אני מורה</button>
     <button class="btn btn-secondary" onclick="showStudent()">🎒 אני תלמיד</button>
   </div>
-  <p style="text-align:center; font-size:0.78rem; color:var(--muted); margin-top:24px;">
-    טיסות חי מ-OpenSky Network · רמזים מבינה מלאכותית
+  <p style="color:var(--muted);font-size:0.78rem;margin-top:20px;text-align:center;">
+    OpenSky Network · Claude AI · Firebase
   </p>
 </div>
 
-<!-- ══════════ SCREEN 1: Teacher Setup ══════════ -->
+<!-- TEACHER SETUP -->
 <div id="screen-teacher-setup" class="screen">
-  <div class="logo" style="padding-top:20px;">
-    <div class="logo-title" style="font-size:1.8rem;">הגדרת מורה</div>
-  </div>
-  <div class="card">
-    <div class="field">
-      <label>שמך</label>
-      <input type="text" id="teacher-name" placeholder="הכנס שם..." />
-    </div>
-    <button class="btn btn-primary" onclick="openRoom()">🚀 פתח כיתה</button>
-    <button class="btn btn-secondary" onclick="goHome()">← חזרה</button>
-  </div>
-</div>
-
-<!-- ══════════ SCREEN 2: Teacher Dashboard ══════════ -->
-<div id="screen-teacher-dash" class="screen">
-  <div class="logo" style="padding-top:16px;">
-    <div class="logo-title" style="font-size:1.6rem;">לוח המורה</div>
-  </div>
-  <div class="card">
-    <div class="card-title">קוד לתלמידים</div>
-    <div class="room-code-big" id="display-room-code">----</div>
-    <p class="room-code-label">שלח קוד זה לתלמידים — הם יכנסו לאותו קישור</p>
-  </div>
-  <div class="card">
-    <div class="card-title">🏆 טבלת ניקוד — מתעדכן בזמן אמת</div>
-    <div id="teacher-leaderboard">
-      <div class="loading-box">
-        <div class="spinner-plane">✈️</div>
-        <div class="loading-text">ממתין לתלמידים...</div>
+  <div class="setup-wrap">
+    <div class="panel">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--cyan);margin-bottom:20px;">👨‍🏫 פתיחת כיתה</div>
+      <div class="card">
+        <div class="field">
+          <label>שמך</label>
+          <input type="text" id="teacher-name" placeholder="הכנס שם..." />
+        </div>
+        <button class="btn btn-primary" onclick="openRoom()">🚀 פתח כיתה</button>
+        <button class="btn btn-secondary" onclick="goHome()">← חזרה</button>
       </div>
     </div>
   </div>
-  <button class="btn btn-danger" onclick="closeRoom()">❌ סגור כיתה</button>
 </div>
 
-<!-- ══════════ SCREEN 3: Student Join ══════════ -->
+<!-- TEACHER DASH -->
+<div id="screen-teacher-dash" class="screen">
+  <div class="top-bar">
+    <span class="top-bar-title">לוח מורה</span>
+    <button class="btn btn-danger" style="width:auto;padding:6px 14px;font-size:0.85rem;margin:0;" onclick="closeRoom()">❌ סגור כיתה</button>
+  </div>
+  <div class="setup-wrap" style="overflow-y:auto;">
+    <div class="panel" style="max-width:100%;width:100%;">
+      <div class="card">
+        <div class="card-title">קוד לתלמידים</div>
+        <div class="room-code-big" id="display-room-code">----</div>
+        <p style="text-align:center;color:var(--muted);font-size:0.85rem;">שלח קוד זה לתלמידים</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🏆 טבלת ניקוד — לייב</div>
+        <div id="teacher-lb"><div style="text-align:center;color:var(--muted);padding:20px;">ממתין לתלמידים...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT JOIN -->
 <div id="screen-student-join" class="screen">
-  <div class="logo" style="padding-top:20px;">
-    <div class="logo-title" style="font-size:1.8rem;">כניסת תלמיד</div>
-  </div>
-  <div class="card">
-    <div class="field">
-      <label>שמך</label>
-      <input type="text" id="student-name" placeholder="הכנס שם..." />
+  <div class="setup-wrap">
+    <div class="panel">
+      <div style="font-size:1.5rem;font-weight:900;color:var(--cyan);margin-bottom:20px;">🎒 כניסה לכיתה</div>
+      <div class="card">
+        <div class="field">
+          <label>שמך</label>
+          <input type="text" id="student-name" placeholder="הכנס שם..." />
+        </div>
+        <div class="field">
+          <label>קוד כיתה</label>
+          <input type="text" id="room-code-input" placeholder="XXXX" maxlength="4"
+            style="text-transform:uppercase;font-size:2rem;letter-spacing:10px;text-align:center;font-weight:900;" />
+        </div>
+        <div class="err" id="join-error"></div>
+        <button class="btn btn-primary" onclick="joinRoom()">✈️ כנס</button>
+        <button class="btn btn-secondary" onclick="goHome()">← חזרה</button>
+      </div>
     </div>
-    <div class="field">
-      <label>קוד כיתה</label>
-      <input type="text" id="room-code-input" placeholder="XXXX"
-        maxlength="4"
-        style="text-transform:uppercase; font-size:2rem; letter-spacing:8px; text-align:center; font-weight:900;" />
-    </div>
-    <div class="error-msg" id="join-error"></div>
-    <button class="btn btn-primary" onclick="joinRoom()">✈️ כנס לכיתה</button>
-    <button class="btn btn-secondary" onclick="goHome()">← חזרה</button>
   </div>
 </div>
 
-<!-- ══════════ SCREEN 4: Student Game — Flight List ══════════ -->
+<!-- STUDENT GAME - MAP -->
 <div id="screen-student-game" class="screen">
   <div class="top-bar">
-    <div class="section-title">✈️ בחר טיסה</div>
-    <div class="my-score-chip">
-      ⭐ <span class="my-score-num" id="my-score-display">0</span> נק׳
+    <div>
+      <div class="top-bar-title">✈️ בלש הטיסות</div>
+      <div style="font-size:0.75rem;color:var(--muted);" id="room-code-display"></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="score-chip">⭐ <span id="my-score-display">0</span></div>
+      <button class="back-btn" onclick="toggleLb()" title="טבלת ניקוד">🏆</button>
     </div>
   </div>
-  <div class="card" style="padding:12px 16px; margin-bottom:10px;">
-    <p style="color:var(--muted); font-size:0.85rem; text-align:center;">
-      מטוסים מעל ישראל ממש עכשיו — בחר אחד כדי לקבל רמזים
-    </p>
-  </div>
-  <div id="flights-list">
-    <div class="loading-box">
-      <div class="spinner-plane">✈️</div>
-      <div class="loading-text">טוען טיסות חי...</div>
+  <div id="map-container">
+    <div id="map"></div>
+    <div id="map-overlay">
+      <div class="overlay-plane">✈️</div>
+      <div class="overlay-text" id="overlay-text">טוען טיסות חי...</div>
+      <div class="overlay-hint">לחץ על מטוס כדי לקבל רמזים ולנחש לאן הוא טס</div>
     </div>
+    <div id="plane-count"></div>
+    <button id="refresh-btn" onclick="refreshFlights()">🔄 רענן</button>
   </div>
-  <button class="btn btn-secondary" onclick="refreshFlights()" style="margin-top:8px;">🔄 רענן טיסות</button>
-
-  <!-- Mini leaderboard toggle -->
-  <div class="lb-toggle">
-    <button onclick="toggleMiniLb()">🏆 טבלת ניקוד</button>
-  </div>
-  <div id="mini-lb-container" style="display:none; margin-top:12px;">
-    <div class="card">
-      <div class="card-title">🏆 טבלת ניקוד</div>
-      <div id="mini-leaderboard"></div>
-    </div>
+  <div id="hint-panel">
+    <div id="hint-panel-inner"></div>
   </div>
 </div>
 
-<!-- ══════════ SCREEN 5: Hints ══════════ -->
-<div id="screen-hints" class="screen">
-  <div class="top-bar">
-    <div class="section-title">🔍 נחש את היעד</div>
-    <div class="points-badge">⭐ <span id="potential-points">3</span> נקודות</div>
+<!-- LEADERBOARD OVERLAY -->
+<div id="lb-overlay">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div style="font-size:1.3rem;font-weight:900;color:var(--cyan);">🏆 טבלת ניקוד</div>
+    <button class="back-btn" onclick="toggleLb()" style="font-size:1.1rem;">✕</button>
   </div>
-
-  <!-- Flight info -->
-  <div class="card" style="padding:14px 18px; margin-bottom:12px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-      <div>
-        <div style="color:var(--muted); font-size:0.78rem; margin-bottom:3px;">טיסה</div>
-        <div id="hint-callsign" style="font-size:1.3rem; font-weight:900; color:var(--cyan);"></div>
-      </div>
-      <div>
-        <div style="color:var(--muted); font-size:0.78rem; margin-bottom:3px;">גובה</div>
-        <div id="hint-altitude" style="font-weight:700;"></div>
-      </div>
-      <div>
-        <div style="color:var(--muted); font-size:0.78rem; margin-bottom:3px;">מהירות</div>
-        <div id="hint-velocity" style="font-weight:700;"></div>
-      </div>
-      <div>
-        <div style="color:var(--muted); font-size:0.78rem; margin-bottom:3px;">כיוון</div>
-        <div id="hint-heading" style="font-weight:700;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading hints -->
-  <div id="hints-loading">
-    <div class="loading-box">
-      <div class="spinner-plane">🤖</div>
-      <div class="loading-text">קלוד מכין רמזים...</div>
-    </div>
-  </div>
-
-  <!-- Hints appear here -->
-  <div id="hints-container"></div>
-
-  <!-- Guess section -->
-  <div id="guess-section" style="display:none;">
-    <div class="card">
-      <div class="field" style="margin-bottom:10px;">
-        <label>הניחוש שלך (עיר או מדינה)</label>
-        <input type="text" id="guess-input" placeholder="לדוגמה: לונדון, צרפת..."
-          onkeydown="if(event.key==='Enter') submitGuess()" />
-      </div>
-      <button class="btn btn-amber" id="guess-btn" onclick="submitGuess()">🎯 נחש!</button>
-      <button class="btn btn-secondary" id="next-hint-btn" onclick="showNextHint()" style="display:none;">
-        📖 רמז נוסף (−1 נקודה)
-      </button>
-    </div>
-  </div>
-
-  <!-- Result -->
-  <div id="result-section" style="display:none;">
-    <div id="result-box" class="result-box">
-      <span id="result-emoji" class="result-emoji"></span>
-      <div id="result-pts" class="result-pts"></div>
-      <div id="result-dest" class="result-dest"></div>
-    </div>
-    <button class="btn btn-primary" onclick="nextRound()">✈️ מטוס הבא</button>
-  </div>
+  <div id="lb-list"></div>
 </div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-// ═══════════════════════════════════════════════════
-// CONFIG — ערוך כאן
-// ═══════════════════════════════════════════════════
 const WORKER_URL = 'https://proud-paper-0987.nadaval56.workers.dev/';
-
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCw1RZdViDHgYbf2R_iByME3VAqJVoMH64",
   authDomain: "live-pulse-6700f.firebaseapp.com",
@@ -586,379 +283,279 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "362166556095",
   appId: "1:362166556095:web:4b86c174eb478641ce3d0a"
 };
+const BBOX = { lamin:28.0, lomin:30.0, lamax:36.5, lomax:40.0 };
 
-// Israel + surroundings bounding box
-const BBOX = { lamin: 29.0, lomin: 33.0, lamax: 34.0, lomax: 37.5 };
-
-const ROOM_TTL = 24 * 60 * 60 * 1000;
-
-// ═══════════════════════════════════════════════════
-// FIREBASE
-// ═══════════════════════════════════════════════════
 firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.database();
 
-// ═══════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════
+let map = null;
+let planeMarkers = {};
 let state = {
-  role: null,
-  teacherName: '',
-  studentName: '',
-  studentId: '',
-  roomCode: '',
-  myScore: 0,
-  currentFlight: null,
-  hints: [],
-  currentHintIndex: 0,
-  potentialPoints: 3,
-  destination: '',
-  keywords: [],
-  leaderboardRef: null,
-  studentRef: null,
-  miniLbVisible: false
+  role:null, teacherName:'', studentName:'', studentId:'',
+  roomCode:'', myScore:0,
+  currentFlight:null, hints:[], hintIndex:0,
+  potentialPoints:3, destination:'', keywords:[],
+  gamePhase:'idle',
+  studentRef:null, leaderboardRef:null,
 };
 
-// ═══════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
+  window.scrollTo(0,0);
 }
 function goHome() { showScreen('screen-landing'); }
 function showTeacher() { showScreen('screen-teacher-setup'); }
 function showStudent() { showScreen('screen-student-join'); }
 
-// ═══════════════════════════════════════════════════
-// TEACHER
-// ═══════════════════════════════════════════════════
 function genCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return Array.from({length:4}, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*33)]).join('');
 }
-
 async function openRoom() {
   const name = document.getElementById('teacher-name').value.trim();
   if (!name) { alert('נא להזין שם'); return; }
-
   const code = genCode();
-  state.roomCode = code;
-  state.teacherName = name;
-  state.role = 'teacher';
-
-  await db.ref(`rooms/${code}`).set({
-    teacher: name,
-    created: Date.now(),
-    active: true
-  });
-
+  state.roomCode = code; state.teacherName = name;
+  await db.ref('rooms/'+code).set({ teacher:name, created:Date.now(), active:true });
   document.getElementById('display-room-code').textContent = code;
   showScreen('screen-teacher-dash');
-
-  // Live leaderboard
-  state.leaderboardRef = db.ref(`rooms/${code}/students`);
-  state.leaderboardRef.on('value', snap => {
-    renderLeaderboard(snap.val(), null, 'teacher-leaderboard', true);
-  });
+  state.leaderboardRef = db.ref('rooms/'+code+'/students');
+  state.leaderboardRef.on('value', snap => renderLb(snap.val(), null, 'teacher-lb'));
 }
-
 async function closeRoom() {
-  if (!state.roomCode) return;
-  if (!confirm('לסגור את הכיתה?')) return;
-  await db.ref(`rooms/${state.roomCode}`).remove();
+  if (!state.roomCode || !confirm('לסגור?')) return;
+  await db.ref('rooms/'+state.roomCode).remove();
   if (state.leaderboardRef) state.leaderboardRef.off();
   goHome();
 }
 
-// ═══════════════════════════════════════════════════
-// STUDENT
-// ═══════════════════════════════════════════════════
 async function joinRoom() {
   const name = document.getElementById('student-name').value.trim();
   const code = document.getElementById('room-code-input').value.trim().toUpperCase();
-  const errEl = document.getElementById('join-error');
-  errEl.style.display = 'none';
-
-  if (!name) { errEl.textContent = 'נא להזין שם'; errEl.style.display = 'block'; return; }
-  if (code.length !== 4) { errEl.textContent = 'קוד חייב להיות 4 תווים'; errEl.style.display = 'block'; return; }
-
-  const snap = await db.ref(`rooms/${code}`).get();
-  if (!snap.exists() || !snap.val().active) {
-    errEl.textContent = 'קוד לא נמצא – בדוק עם המורה';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  state.studentName = name;
-  state.roomCode = code;
-  state.role = 'student';
-  state.myScore = 0;
-  state.studentId = name.replace(/[.#$\[\]/]/g, '_') + '_' + Date.now();
-
-  state.studentRef = db.ref(`rooms/${code}/students/${state.studentId}`);
-  await state.studentRef.set({ name, score: 0 });
-
-  // Live score update
+  const err = document.getElementById('join-error');
+  err.style.display = 'none';
+  if (!name) { err.textContent='נא להזין שם'; err.style.display='block'; return; }
+  if (code.length!==4) { err.textContent='קוד חייב להיות 4 תווים'; err.style.display='block'; return; }
+  const snap = await db.ref('rooms/'+code).get();
+  if (!snap.exists() || !snap.val().active) { err.textContent='קוד לא נמצא'; err.style.display='block'; return; }
+  state.studentName=name; state.roomCode=code; state.role='student'; state.myScore=0;
+  state.studentId = name.replace(/[.#$\[\]/]/g,'_')+'_'+Date.now();
+  state.studentRef = db.ref('rooms/'+code+'/students/'+state.studentId);
+  await state.studentRef.set({ name, score:0 });
   state.studentRef.on('value', snap => {
     if (snap.exists()) {
-      state.myScore = snap.val().score || 0;
+      state.myScore = snap.val().score||0;
       const el = document.getElementById('my-score-display');
       if (el) el.textContent = state.myScore;
     }
   });
-
-  // Mini leaderboard
-  state.leaderboardRef = db.ref(`rooms/${code}/students`);
-  state.leaderboardRef.on('value', snap => {
-    renderLeaderboard(snap.val(), state.studentId, 'mini-leaderboard', false);
-  });
-
+  state.leaderboardRef = db.ref('rooms/'+code+'/students');
+  state.leaderboardRef.on('value', snap => renderLb(snap.val(), state.studentId, 'lb-list'));
+  document.getElementById('room-code-display').textContent = 'כיתה: '+code;
   showScreen('screen-student-game');
-  loadFlights();
+  initMap();
 }
 
-// ═══════════════════════════════════════════════════
-// OPENSKY
-// ═══════════════════════════════════════════════════
+function initMap() {
+  if (map) { loadFlights(); return; }
+  setTimeout(() => {
+    map = L.map('map', { center:[32,35], zoom:7, zoomControl:true, attributionControl:false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom:14 }).addTo(map);
+    loadFlights();
+  }, 120);
+}
+
+function planeIcon(heading, selected) {
+  const h = heading||0;
+  const color = selected ? '#ffb830' : '#00d4ff';
+  const glow = selected ? 'drop-shadow(0 0 8px #ffb830)' : 'drop-shadow(0 0 5px #00d4ff)';
+  const sz = selected ? 38 : 30;
+  return L.divIcon({
+    html: '<div style="transform:rotate('+h+'deg);filter:'+glow+';font-size:'+(sz-6)+'px;line-height:1;color:'+color+'">✈</div>',
+    className:'',
+    iconSize:[sz,sz],
+    iconAnchor:[sz/2,sz/2]
+  });
+}
+
 async function loadFlights() {
-  const el = document.getElementById('flights-list');
-  el.innerHTML = `
-    <div class="loading-box">
-      <div class="spinner-plane">✈️</div>
-      <div class="loading-text">טוען טיסות חי...</div>
-    </div>`;
-
+  showOverlay('טוען טיסות חי...', true);
   try {
-    const url = `https://opensky-network.org/api/states/all?lamin=${BBOX.lamin}&lomin=${BBOX.lomin}&lamax=${BBOX.lamax}&lomax=${BBOX.lomax}`;
+    const url = 'https://opensky-network.org/api/states/all?lamin='+BBOX.lamin+'&lomin='+BBOX.lomin+'&lamax='+BBOX.lamax+'&lomax='+BBOX.lomax;
     const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
     const data = await resp.json();
-
-    const flights = (data.states || [])
-      .filter(f => f[1] && f[1].trim() && !f[8] && f[7] > 1000) // has callsign, airborne, above 1km
-      .slice(0, 15);
-
-    if (!flights.length) {
-      el.innerHTML = `<div class="loading-box" style="color:var(--muted);">
-        אין טיסות כרגע מעל האזור.<br>נסה לרענן.
-      </div>`;
-      return;
-    }
-
-    el.innerHTML = '';
+    Object.values(planeMarkers).forEach(p => map.removeLayer(p.marker));
+    planeMarkers = {};
+    const flights = (data.states||[]).filter(f => f[1]&&f[1].trim()&&!f[8]&&f[5]&&f[6]&&f[7]>500);
     flights.forEach(f => {
-      const callsign = f[1].trim();
-      const country = f[2] || '—';
-      const alt = f[7] ? (Math.round(f[7] / 100) * 100).toLocaleString() + ' מ\'' : '?';
-      const spd = f[9] ? Math.round(f[9] * 3.6) + ' קמ"ש' : '?';
-      const dir = headingToDir(f[10]);
-
-      const div = document.createElement('div');
-      div.className = 'flight-item';
-      div.innerHTML = `
-        <div>
-          <div class="flight-callsign">✈ ${callsign}</div>
-          <div class="flight-meta">${country} · ${alt} · ${spd} · ${dir}</div>
-        </div>
-        <div class="flight-arrow">›</div>`;
-      div.onclick = () => selectFlight(f);
-      el.appendChild(div);
+      const cs = f[1].trim();
+      const marker = L.marker([f[6],f[5]], { icon:planeIcon(f[10]||0, false) }).addTo(map);
+      const alt = f[7]?Math.round(f[7]/100)*100+'מ׳':'?';
+      const spd = f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
+      marker.bindTooltip('<b>'+cs+'</b><br>'+(f[2]||'')+'<br>'+alt+' · '+spd,
+        { direction:'top', className:'plane-tip', offset:[0,-10] });
+      marker.on('click', () => onFlightClick(f, marker));
+      planeMarkers[cs] = { marker, data:f };
     });
-
+    document.getElementById('plane-count').textContent = flights.length ? flights.length+' מטוסים' : '';
+    if (!flights.length) showOverlay('אין מטוסים כרגע — נסה לרענן', false);
+    else hideOverlay();
   } catch(e) {
-    el.innerHTML = `<div class="loading-box" style="color:var(--red);">
-      שגיאה בטעינת טיסות<br><small>${e.message}</small>
-    </div>`;
+    showOverlay('שגיאה: '+e.message, false);
   }
 }
-
 function refreshFlights() { loadFlights(); }
 
-function headingToDir(h) {
-  if (h == null) return '?';
-  const dirs = ['צפון','צ-מ','מזרח','ד-מ','דרום','ד-מ','מערב','צ-מ'];
-  return dirs[Math.round(h / 45) % 8];
+function showOverlay(txt, spinner) {
+  const el = document.getElementById('map-overlay');
+  el.classList.remove('hidden');
+  el.innerHTML = (spinner?'<div class="overlay-plane">✈️</div>':'')
+    +'<div class="overlay-text">'+txt+'</div>'
+    +'<div class="overlay-hint">לחץ על מטוס כדי לקבל רמזים ולנחש לאן הוא טס</div>';
+}
+function hideOverlay() { document.getElementById('map-overlay').classList.add('hidden'); }
+
+function onFlightClick(f, marker) {
+  if (state.gamePhase === 'loading-hints') return;
+  Object.values(planeMarkers).forEach(p => p.marker.setIcon(planeIcon(p.data[10]||0, false)));
+  marker.setIcon(planeIcon(f[10]||0, true));
+  state.currentFlight=f; state.hints=[]; state.hintIndex=0;
+  state.potentialPoints=3; state.destination=''; state.keywords=[];
+  state.gamePhase='loading-hints';
+  const cs=f[1].trim();
+  const alt=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
+  const spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
+  const dir=headingToDir(f[10]);
+  openHintPanel(
+    '<div class="flight-header">'
+    +'<div><div class="flight-id">✈ '+cs+'</div><div style="color:var(--muted);font-size:0.82rem;">'+(f[2]||'')+'</div></div>'
+    +'<div class="flight-stats">'
+    +'<div class="stat"><div class="stat-val">'+alt+'</div><div class="stat-lbl">גובה</div></div>'
+    +'<div class="stat"><div class="stat-val">'+spd+'</div><div class="stat-lbl">מהירות</div></div>'
+    +'<div class="stat"><div class="stat-val">'+dir+'</div><div class="stat-lbl">כיוון</div></div>'
+    +'</div></div>'
+    +'<div id="hints-area"></div>'
+    +'<div id="hint-loading"><div style="text-align:center;padding:24px;color:var(--muted);">'
+    +'<div style="font-size:2rem;animation:flyAnim 1.2s ease-in-out infinite">🤖</div>'
+    +'<div style="margin-top:10px;">קלוד מכין רמזים...</div></div></div>'
+    +'<div id="guess-area"></div>'
+  );
+  fetchHints(cs, f[2], f[7], f[9], f[10]);
 }
 
-// ═══════════════════════════════════════════════════
-// GAME — SELECT FLIGHT
-// ═══════════════════════════════════════════════════
-async function selectFlight(f) {
-  state.currentFlight = f;
-  state.hints = [];
-  state.currentHintIndex = 0;
-  state.potentialPoints = 3;
-  state.destination = '';
-  state.keywords = [];
-
-  const callsign = f[1].trim();
-  const country = f[2] || '';
-  const altitude = f[7];
-  const velocity = f[9];
-  const heading = f[10];
-
-  document.getElementById('hint-callsign').textContent = callsign;
-  document.getElementById('hint-altitude').textContent = altitude ? Math.round(altitude).toLocaleString() + ' מ\'' : '?';
-  document.getElementById('hint-velocity').textContent = velocity ? Math.round(velocity * 3.6) + ' קמ"ש' : '?';
-  document.getElementById('hint-heading').textContent = headingToDir(heading);
-  document.getElementById('hints-container').innerHTML = '';
-  document.getElementById('guess-section').style.display = 'none';
-  document.getElementById('result-section').style.display = 'none';
-  document.getElementById('hints-loading').style.display = 'block';
-  document.getElementById('guess-input').value = '';
-  document.getElementById('potential-points').textContent = '3';
-
-  showScreen('screen-hints');
-
+async function fetchHints(callsign, country, altitude, velocity, heading) {
   try {
     const resp = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callsign, originCountry: country, altitude, velocity, heading })
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ callsign, originCountry:country, altitude, velocity, heading })
     });
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
-
-    state.hints = data.hints;
-    state.destination = data.destination;
-    state.keywords = data.keywords || [];
-
-    document.getElementById('hints-loading').style.display = 'none';
-    showNextHint();
-
+    state.hints=data.hints; state.destination=data.destination; state.keywords=data.keywords||[];
+    const hl = document.getElementById('hint-loading');
+    if (hl) hl.style.display='none';
+    state.gamePhase='guessing';
+    showHint();
   } catch(e) {
-    document.getElementById('hints-loading').innerHTML =
-      `<div class="loading-box" style="color:var(--red);">שגיאה: ${e.message}</div>`;
+    const hl = document.getElementById('hint-loading');
+    if (hl) hl.innerHTML='<div style="color:var(--red);text-align:center;padding:16px;">שגיאה: '+e.message+'</div>';
   }
 }
 
-// ═══════════════════════════════════════════════════
-// GAME — HINTS
-// ═══════════════════════════════════════════════════
-function showNextHint() {
-  if (state.currentHintIndex >= state.hints.length) return;
-
-  const labels = ['רמז 1 — קשה', 'רמז 2 — בינוני', 'רמז 3 — קל'];
+function showHint() {
+  if (state.hintIndex >= state.hints.length) return;
+  const labels=['רמז 1 — קשה 🔴','רמז 2 — בינוני 🟡','רמז 3 — קל 🟢'];
   const box = document.createElement('div');
-  box.className = 'hint-box';
-  box.innerHTML = `
-    <div class="hint-label">${labels[state.currentHintIndex] || 'רמז'}</div>
-    <div class="hint-text">${state.hints[state.currentHintIndex]}</div>`;
-  document.getElementById('hints-container').appendChild(box);
-  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-  state.currentHintIndex++;
-  state.potentialPoints = Math.max(1, 4 - state.currentHintIndex);
-  document.getElementById('potential-points').textContent = state.potentialPoints;
-
-  document.getElementById('guess-section').style.display = 'block';
-  document.getElementById('guess-btn').style.display = 'block';
-
-  const nextBtn = document.getElementById('next-hint-btn');
-  nextBtn.style.display = state.currentHintIndex < state.hints.length ? 'block' : 'none';
-
-  document.getElementById('guess-input').focus();
+  box.className='hint-box';
+  box.innerHTML='<div class="hint-label">'+(labels[state.hintIndex]||'רמז')+'</div>'
+    +'<div class="hint-text">'+state.hints[state.hintIndex]+'</div>';
+  document.getElementById('hints-area').appendChild(box);
+  state.hintIndex++;
+  state.potentialPoints = Math.max(1, 4-state.hintIndex);
+  renderGuessUI();
+  const panel = document.getElementById('hint-panel');
+  setTimeout(()=>{ panel.scrollTop=panel.scrollHeight; }, 50);
 }
 
-// ═══════════════════════════════════════════════════
-// GAME — GUESS
-// ═══════════════════════════════════════════════════
+function renderGuessUI() {
+  const area = document.getElementById('guess-area');
+  if (!area) return;
+  const hasMore = state.hintIndex < state.hints.length;
+  area.innerHTML =
+    '<div class="pts-row"><span class="pts-label">שווה כרגע:</span><span class="pts-value">⭐ '+state.potentialPoints+' נקודות</span></div>'
+    +'<div class="guess-row">'
+    +'<input type="text" id="guess-input" placeholder="לאן הטיסה? (עיר / מדינה)" onkeydown="if(event.key===\'Enter\') submitGuess()" />'
+    +'<button class="btn btn-amber" onclick="submitGuess()">🎯 נחש</button>'
+    +'</div>'
+    +(hasMore ? '<button class="next-hint-btn" onclick="showHint()">📖 רמז נוסף (−1 נקודה)</button>' : '');
+  setTimeout(()=>{ const i=document.getElementById('guess-input'); if(i) i.focus(); },100);
+}
+
 async function submitGuess() {
-  const guess = document.getElementById('guess-input').value.trim().toLowerCase();
+  const inp = document.getElementById('guess-input');
+  if (!inp) return;
+  const guess = inp.value.trim().toLowerCase();
   if (!guess) return;
-
   const dest = state.destination.toLowerCase();
-  const kws = state.keywords.map(k => k.toLowerCase());
-
-  const correct =
-    dest.includes(guess) ||
-    guess.includes(dest) ||
-    kws.some(k => k && (guess.includes(k) || k.includes(guess)));
-
-  document.getElementById('guess-section').style.display = 'none';
-  document.getElementById('result-section').style.display = 'block';
-
-  const box = document.getElementById('result-box');
+  const kws = state.keywords.map(k=>k.toLowerCase());
+  const correct = dest.includes(guess)||guess.includes(dest)||kws.some(k=>k&&(guess.includes(k)||k.includes(guess)));
   const pts = correct ? state.potentialPoints : 0;
-
-  if (correct) {
-    box.className = 'result-box correct';
-    document.getElementById('result-emoji').textContent = '🎉';
-    document.getElementById('result-pts').innerHTML = `+${pts} נקודות!`;
-    document.getElementById('result-dest').innerHTML = `היעד: <strong>${state.destination}</strong>`;
-
-    // Update Firebase score
-    if (state.studentRef) {
-      await state.studentRef.transaction(cur => {
-        if (!cur) return { name: state.studentName, score: pts };
-        cur.score = (cur.score || 0) + pts;
-        return cur;
-      });
-    }
-  } else {
-    box.className = 'result-box wrong';
-    document.getElementById('result-emoji').textContent = '😔';
-    document.getElementById('result-pts').innerHTML = ``;
-    document.getElementById('result-dest').innerHTML = `היעד היה: <strong>${state.destination}</strong>`;
+  state.gamePhase='revealed';
+  const area = document.getElementById('guess-area');
+  area.innerHTML =
+    '<div class="result-box '+(correct?'correct':'wrong')+'">'
+    +'<span class="result-emoji">'+(correct?'🎉':'😔')+'</span>'
+    +(correct?'<div class="result-pts">+'+pts+' נקודות!</div>':'')
+    +'<div class="result-dest">היעד: <strong>'+state.destination+'</strong></div>'
+    +'</div>'
+    +'<button class="btn btn-primary" onclick="closeHintPanel()">✈️ בחר מטוס אחר</button>';
+  if (correct && pts>0 && state.studentRef) {
+    await state.studentRef.transaction(cur => {
+      if (!cur) return { name:state.studentName, score:pts };
+      cur.score=(cur.score||0)+pts; return cur;
+    });
   }
 }
 
-function nextRound() {
-  showScreen('screen-student-game');
+function openHintPanel(html) {
+  document.getElementById('hint-panel-inner').innerHTML=html;
+  document.getElementById('hint-panel').classList.add('open');
+}
+function closeHintPanel() {
+  document.getElementById('hint-panel').classList.remove('open');
+  state.gamePhase='idle';
+  Object.values(planeMarkers).forEach(p=>p.marker.setIcon(planeIcon(p.data[10]||0,false)));
 }
 
-// ═══════════════════════════════════════════════════
-// LEADERBOARD
-// ═══════════════════════════════════════════════════
-function renderLeaderboard(students, myId, containerId, large) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-
-  if (!students) {
-    el.innerHTML = `<div style="color:var(--muted); text-align:center; padding:16px;">אין תלמידים עדיין</div>`;
-    return;
-  }
-
-  const sorted = Object.entries(students)
-    .map(([id, v]) => ({ id, ...v }))
-    .sort((a, b) => (b.score || 0) - (a.score || 0));
-
-  const medals = ['🥇','🥈','🥉'];
-
-  el.innerHTML = sorted.map((s, i) => `
-    <div class="lb-row ${s.id === myId ? 'me' : ''}">
-      <span class="lb-rank">${medals[i] || (i + 1)}</span>
-      <span class="lb-name">
-        ${s.name}
-        ${s.id === myId ? '<span class="lb-me-tag">אני</span>' : ''}
-      </span>
-      <span class="lb-score">${s.score || 0} נק׳</span>
-    </div>`).join('');
+function toggleLb() { document.getElementById('lb-overlay').classList.toggle('open'); }
+function renderLb(students, myId, cid) {
+  const el=document.getElementById(cid); if(!el) return;
+  if (!students) { el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;">אין תלמידים עדיין</div>'; return; }
+  const sorted=Object.entries(students).map(([id,v])=>({id,...v})).sort((a,b)=>(b.score||0)-(a.score||0));
+  const medals=['🥇','🥈','🥉'];
+  el.innerHTML=sorted.map((s,i)=>
+    '<div class="lb-row '+(s.id===myId?'me':'')+'">'
+    +'<span class="lb-rank">'+(medals[i]||(i+1))+'</span>'
+    +'<span class="lb-name">'+s.name+(s.id===myId?'<span class="lb-me-tag">אני</span>':'')+'</span>'
+    +'<span class="lb-score">'+(s.score||0)+' נק׳</span>'
+    +'</div>').join('');
 }
 
-function toggleMiniLb() {
-  state.miniLbVisible = !state.miniLbVisible;
-  document.getElementById('mini-lb-container').style.display =
-    state.miniLbVisible ? 'block' : 'none';
+function headingToDir(h) {
+  if (h==null) return '?';
+  return ['צפון','צ-מ','מזרח','ד-מ','דרום','ד-מ','מערב','צ-מ'][Math.round(h/45)%8];
 }
 
-// ═══════════════════════════════════════════════════
-// CLEANUP
-// ═══════════════════════════════════════════════════
-async function cleanOldRooms() {
+(async()=>{
   try {
-    const snap = await db.ref('rooms').get();
-    if (!snap.exists()) return;
-    const now = Date.now();
-    const del = {};
-    snap.forEach(c => { if (now - c.val().created > ROOM_TTL) del[c.key] = null; });
-    if (Object.keys(del).length) await db.ref('rooms').update(del);
-  } catch(e) {}
-}
-
-cleanOldRooms();
+    const snap=await db.ref('rooms').get(); if(!snap.exists()) return;
+    const now=Date.now(), del={};
+    snap.forEach(c=>{ if(now-c.val().created>86400000) del[c.key]=null; });
+    if(Object.keys(del).length) await db.ref('rooms').update(del);
+  } catch(e){}
+})();
 </script>
 </body>
 </html>
