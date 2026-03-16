@@ -316,7 +316,7 @@ input::placeholder{color:var(--muted)}
         <div id="info-idle" class="info-idle">✈️<br>בחר מטוס<br>מהמפה</div>
         <div id="info-data" style="display:none">
           <div class="info-cs" id="info-cs"></div>
-          <div class="info-country" id="info-country"></div>
+          <div class="info-country" id="info-country" style="display:none"></div>
           <div class="info-stat">📍 <span id="info-alt"></span></div>
           <div class="info-stat">💨 <span id="info-spd"></span></div>
           <div class="info-stat">🧭 <span id="info-dir"></span></div>
@@ -329,11 +329,11 @@ input::placeholder{color:var(--muted)}
       <div id="q-body">
         <div id="q-idle" class="q-idle">בחר מטוס<br>כדי להתחיל</div>
         <div id="q-active" style="display:none">
-          <div class="q-question">🔍 מאיפה הגעתי?</div>
+          <div class="q-question">🔍 לאיזו מדינה אני שייך?</div>
         </div>
       </div>
       <div id="q-guess">
-        <input type="text" id="guess-inp" placeholder="מדינה / עיר..."
+        <input type="text" id="guess-inp" placeholder="שם המדינה..."
           onkeydown="if(event.key==='Enter')submitGuess()"/>
         <button class="btn btn-amber" onclick="submitGuess()">🎯 נחש</button>
       </div>
@@ -607,7 +607,7 @@ async function submitGuess(){
   // show result
   document.getElementById('r-emoji').textContent=ok?'🎉':'😔';
   document.getElementById('r-pts').textContent=ok?'+'+pts+' נקודות!':'';
-  document.getElementById('r-dest').innerHTML='המוצא: <strong>'+S.dest+'</strong>';
+  document.getElementById('r-dest').innerHTML='המדינה: <strong>'+S.dest+'</strong>';
   document.getElementById('result').classList.add('show');
   if(ok&&pts>0&&S.sRef){
     await S.sRef.transaction(cur=>{if(!cur)return{name:S.name,score:pts};cur.score=(cur.score||0)+pts;return cur;});
