@@ -82,8 +82,8 @@ input::placeholder { color:var(--muted); }
   border-radius:20px; padding:4px 14px; font-size:0.9rem; color:var(--amber); font-weight:800; }
 .back-btn { background:none; border:none; color:var(--muted); cursor:pointer;
   font-size:0.85rem; font-family:'Heebo',sans-serif; padding:4px 8px; }
-#map-container { position:relative; }
-#map { width:100%; height:calc(100vh - 52px); }
+#map-container { flex:1; position:relative; min-height:0; }
+#map { width:100%; height:100%; min-height:300px; }
 #map-overlay { position:absolute; inset:0; z-index:999;
   display:flex; align-items:center; justify-content:center;
   background:rgba(5,13,26,0.85); backdrop-filter:blur(4px);
@@ -256,6 +256,11 @@ input::placeholder { color:var(--muted); }
       <div class="overlay-hint">לחץ על מטוס כדי לקבל רמזים ולנחש לאן הוא טס</div>
     </div>
     <div id="plane-count"></div>
+    <!-- Mini leaderboard -->
+    <div id="mini-lb">
+      <div class="card-title">🏆 ניקוד</div>
+      <div id="mini-lb-list"><div style="color:var(--muted);font-size:0.82rem;">ממתין...</div></div>
+    </div>
     <button id="refresh-btn" onclick="refreshFlights()">🔄 רענן</button>
   </div>
   <div id="hint-panel">
@@ -290,6 +295,7 @@ const db = firebase.database();
 
 let map = null;
 let planeMarkers = {};
+let playedFlights = new Set();
 let state = {
   role:null, teacherName:'', studentName:'', studentId:'',
   roomCode:'', myScore:0,
@@ -350,7 +356,10 @@ async function joinRoom() {
     }
   });
   state.leaderboardRef = db.ref('rooms/'+code+'/students');
-  state.leaderboardRef.on('value', snap => renderLb(snap.val(), state.studentId, 'lb-list'));
+  state.leaderboardRef.on('value', snap => {
+    renderLb(snap.val(), state.studentId, 'lb-list');
+    renderMiniLb(snap.val(), state.studentId);
+  });
   document.getElementById('room-code-display').textContent = 'כיתה: '+code;
   showScreen('screen-student-game');
   initMap();
@@ -365,10 +374,10 @@ function initMap() {
   }, 120);
 }
 
-function planeIcon(heading, selected) {
+function planeIcon(heading, selected, played) {
   const h = heading||0;
-  const color = selected ? '#ffb830' : '#00d4ff';
-  const glow = selected ? 'drop-shadow(0 0 8px #ffb830)' : 'drop-shadow(0 0 5px #00d4ff)';
+  const color = played ? '#2a4a5a' : (selected ? '#ffb830' : '#00d4ff');
+  const glow = played ? 'none' : (selected ? 'drop-shadow(0 0 8px #ffb830)' : 'drop-shadow(0 0 5px #00d4ff)');
   const sz = selected ? 38 : 30;
   return L.divIcon({
     html: '<div style="transform:rotate('+h+'deg);filter:'+glow+';font-size:'+(sz-6)+'px;line-height:1;color:'+color+'">✈</div>',
@@ -387,10 +396,11 @@ async function loadFlights() {
     const data = await resp.json();
     Object.values(planeMarkers).forEach(p => map.removeLayer(p.marker));
     planeMarkers = {};
+    playedFlights = new Set(); // reset on manual refresh
     const flights = (data.states||[]).filter(f => f[1]&&f[1].trim()&&!f[8]&&f[5]&&f[6]&&f[7]>500);
     flights.forEach(f => {
       const cs = f[1].trim();
-      const marker = L.marker([f[6],f[5]], { icon:planeIcon(f[10]||0, false) }).addTo(map);
+      const marker = L.marker([f[6],f[5]], { icon:planeIcon(f[10]||0, false, false) }).addTo(map);
       const alt = f[7]?Math.round(f[7]/100)*100+'מ׳':'?';
       const spd = f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
       marker.bindTooltip('<b>'+cs+'</b><br>'+(f[2]||'')+'<br>'+alt+' · '+spd,
@@ -418,6 +428,8 @@ function hideOverlay() { document.getElementById('map-overlay').classList.add('h
 
 function onFlightClick(f, marker) {
   if (state.gamePhase === 'loading-hints') return;
+  const cs = f[1].trim();
+  if (playedFlights.has(cs)) return; // already played
   Object.values(planeMarkers).forEach(p => p.marker.setIcon(planeIcon(p.data[10]||0, false)));
   marker.setIcon(planeIcon(f[10]||0, true));
   state.currentFlight=f; state.hints=[]; state.hintIndex=0;
@@ -521,15 +533,29 @@ async function submitGuess() {
 
 function openHintPanel(html) {
   document.getElementById('hint-panel-inner').innerHTML=html;
-  document.getElementById('hint-panel').classList.add('open');
+  const panel = document.getElementById('hint-panel');
+  panel.classList.add('open');
+  setTimeout(()=>{ panel.scrollIntoView({behavior:'smooth',block:'end'}); }, 380);
 }
 function closeHintPanel() {
   document.getElementById('hint-panel').classList.remove('open');
+  // Mark current plane as played
+  if (state.currentFlight) {
+    const cs = state.currentFlight[1].trim();
+    playedFlights.add(cs);
+    if (planeMarkers[cs]) {
+      planeMarkers[cs].marker.setIcon(planeIcon(state.currentFlight[10]||0, false, true));
+      planeMarkers[cs].marker.off('click');
+    }
+  }
   state.gamePhase='idle';
-  Object.values(planeMarkers).forEach(p=>p.marker.setIcon(planeIcon(p.data[10]||0,false)));
+  // Reset other planes (not played)
+  Object.entries(planeMarkers).forEach(([cs,p])=>{
+    if (!playedFlights.has(cs)) p.marker.setIcon(planeIcon(p.data[10]||0,false,false));
+  });
 }
 
-function toggleLb() { document.getElementById('lb-overlay').classList.toggle('open'); }
+function toggleLb() { document.getElementById('mini-lb').classList.toggle('open'); }
 function renderLb(students, myId, cid) {
   const el=document.getElementById(cid); if(!el) return;
   if (!students) { el.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;">אין תלמידים עדיין</div>'; return; }
@@ -540,6 +566,18 @@ function renderLb(students, myId, cid) {
     +'<span class="lb-rank">'+(medals[i]||(i+1))+'</span>'
     +'<span class="lb-name">'+s.name+(s.id===myId?'<span class="lb-me-tag">אני</span>':'')+'</span>'
     +'<span class="lb-score">'+(s.score||0)+' נק׳</span>'
+    +'</div>').join('');
+}
+
+function renderMiniLb(students, myId) {
+  const el = document.getElementById('mini-lb-list');
+  if (!el || !students) return;
+  const sorted = Object.entries(students).map(([id,v])=>({id,...v})).sort((a,b)=>(b.score||0)-(a.score||0));
+  const medals = ['🥇','🥈','🥉'];
+  el.innerHTML = sorted.slice(0,6).map((s,i)=>
+    '<div class="mini-lb-row '+(s.id===myId?'me':'')+'">'
+    +(medals[i]||'#'+(i+1))+' '+s.name
+    +'<span class="mini-lb-score">'+(s.score||0)+'</span>'
     +'</div>').join('');
 }
 
