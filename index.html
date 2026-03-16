@@ -119,20 +119,22 @@ input::placeholder{color:var(--muted)}
 
 /* RIGHT col — question + guess (first in RTL = rightmost visually) */
 #q-col{
-  width:175px;flex-shrink:0;
+  width:500px;flex-shrink:0;
   display:flex;flex-direction:column;
   border-left:1px solid var(--border);
   background:var(--bg3);overflow:hidden;
 }
-#q-body{flex:1;padding:7px 10px;overflow:hidden}
-.q-idle{color:var(--muted);font-size:0.78rem;text-align:center;
-  padding-top:10px;line-height:1.6}
-.q-question{font-size:0.95rem;font-weight:900;color:var(--amber);margin-bottom:3px}
-.q-cs{font-size:0.68rem;color:var(--cyan);font-weight:700;margin-bottom:3px}
-.q-stats{font-size:0.65rem;color:var(--muted);line-height:1.7}
-#q-guess{flex-shrink:0;padding:5px 8px;border-top:1px solid var(--border);display:none}
-#q-guess input{padding:7px 9px;font-size:0.82rem;margin-bottom:5px}
-#q-guess .btn{padding:7px;font-size:0.85rem;margin:0}
+/* q-col internals */
+#q-info{flex-shrink:0;padding:6px 10px;border-bottom:1px solid var(--border);
+  background:rgba(0,0,0,0.2)}
+.q-cs{font-size:0.75rem;color:var(--cyan);font-weight:700}
+.q-stats{font-size:0.68rem;color:var(--muted);line-height:1.7;margin-top:2px}
+#q-body{flex:1;padding:7px 10px;display:flex;flex-direction:column;justify-content:center}
+.q-idle{color:var(--muted);font-size:0.82rem;text-align:center;line-height:1.7}
+.q-question{font-size:1rem;font-weight:900;color:var(--amber);margin-bottom:6px}
+#q-guess{flex-shrink:0;padding:6px 10px;border-top:1px solid var(--border);display:none}
+#q-guess input{padding:8px 10px;font-size:0.88rem;margin-bottom:6px}
+#q-guess .btn{padding:9px;font-size:0.9rem;margin:0}
 
 /* MIDDLE col — hints carousel */
 #h-col{
@@ -173,7 +175,7 @@ input::placeholder{color:var(--muted)}
 
 /* LEFT col — leaderboard */
 #lb-col{
-  width:85px;flex-shrink:0;
+  width:200px;flex-shrink:0;
   display:flex;flex-direction:column;
   background:var(--bg3);overflow:hidden;
 }
@@ -183,13 +185,13 @@ input::placeholder{color:var(--muted)}
 #lb-rows{flex:1;overflow-y:auto;padding:3px 6px}
 #lb-rows::-webkit-scrollbar{width:2px}
 #lb-rows::-webkit-scrollbar-thumb{background:var(--border)}
-.lb-row{display:flex;align-items:center;gap:3px;padding:3px 0;
+.lb-row{display:flex;align-items:center;gap:5px;padding:5px 0;
   border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.72rem}
 .lb-row:last-child{border-bottom:none}
 .lb-row.me{color:var(--cyan);font-weight:700}
 .lb-med{font-size:0.76rem;min-width:15px}
-.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.7rem}
-.lb-pts{color:var(--amber);font-weight:800;font-size:0.75rem;white-space:nowrap}
+.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.85rem}
+.lb-pts{color:var(--amber);font-weight:800;font-size:0.88rem;white-space:nowrap}
 
 /* ── RESULT — absolute over entire #bottom ── */
 #result{
@@ -228,9 +230,9 @@ input::placeholder{color:var(--muted)}
 <div id="screen-landing" class="screen active">
   <span class="logo-icon">✈️</span>
   <div class="logo-title">בלש הטיסות</div>
-  <div class="logo-sub">נחש לאן הטיסה מועדת — מטוסים חיים!</div>
+  <div class="logo-sub">נחש מאיפה הגיע המטוס — טיסות בזמן אמת!</div>
   <div class="panel">
-    <button class="btn btn-primary" onclick="goJoin()">✈️ כניסה למשחק</button>
+    <button class="btn btn-primary" onclick="goJoin()">כניסה למשחק <span style="display:inline-block;transform:scaleX(-1)">✈️</span></button>
     <button class="link-btn" onclick="goTeacherSetup()">כניסה למורה / פתיחת כיתה</button>
   </div>
   <p style="color:var(--muted);font-size:0.7rem;margin-top:16px;text-align:center">OpenSky Network · Claude AI · Firebase</p>
@@ -297,18 +299,23 @@ input::placeholder{color:var(--muted)}
   <!-- Bottom panel -->
   <div id="bottom">
 
-    <!-- RIGHT: question + guess -->
+    <!-- RIGHT: flight info + question + guess -->
     <div id="q-col">
+      <!-- Flight info strip -->
+      <div id="q-info" style="display:none">
+        <div class="q-cs" id="q-cs"></div>
+        <div class="q-stats" id="q-stats"></div>
+      </div>
+      <!-- Question -->
       <div id="q-body">
-        <div id="q-idle" class="q-idle">✈️<br>בחר מטוס<br>מהמפה</div>
+        <div id="q-idle" class="q-idle">✈️<br>בחר מטוס מהמפה</div>
         <div id="q-active" style="display:none">
-          <div class="q-question">🔍 לאן אני טס?</div>
-          <div class="q-cs" id="q-cs"></div>
-          <div class="q-stats" id="q-stats"></div>
+          <div class="q-question">🔍 מאיפה הגעתי?</div>
         </div>
       </div>
+      <!-- Guess input -->
       <div id="q-guess">
-        <input type="text" id="guess-inp" placeholder="עיר / מדינה..."
+        <input type="text" id="guess-inp" placeholder="מדינה / עיר..."
           onkeydown="if(event.key==='Enter')submitGuess()"/>
         <button class="btn btn-amber" onclick="submitGuess()">🎯 נחש</button>
       </div>
@@ -507,10 +514,11 @@ function clickFlight(cs){
   const alt=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
   const spd=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
   // update q-col
-  document.getElementById('q-idle').style.display='none';
-  document.getElementById('q-active').style.display='block';
+  document.getElementById('q-info').style.display='block';
   document.getElementById('q-cs').textContent='✈ '+cs+' · '+(f[2]||'');
   document.getElementById('q-stats').innerHTML='📍 '+alt+'<br>💨 '+spd+'<br>🧭 '+ddir(f[10]);
+  document.getElementById('q-idle').style.display='none';
+  document.getElementById('q-active').style.display='block';
   document.getElementById('q-guess').style.display='none';
   // hint carousel loading
   document.getElementById('hint-carousel').innerHTML=
@@ -597,6 +605,7 @@ function nextRound(){
 function resetUI(){
   document.getElementById('hint-carousel').innerHTML=
     '<div class="idle-msg"><div class="idle-plane">✈️</div><div>בחר מטוס</div></div>';
+  document.getElementById('q-info').style.display='none';
   document.getElementById('q-idle').style.display='block';
   document.getElementById('q-active').style.display='none';
   document.getElementById('q-guess').style.display='none';
