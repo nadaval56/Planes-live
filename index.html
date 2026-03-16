@@ -377,61 +377,33 @@ input::placeholder{color:var(--muted)}
     </div>
   </div>
 
-  <!-- Bottom panel -->
+  <!-- Bottom panel: LEFT=hints, RIGHT=question+guess+lb -->
   <div id="bottom-panel">
 
-    <!-- Left: hints + guess -->
+    <!-- LEFT: hint carousel -->
     <div id="hints-col">
-      <div id="hints-header">
-        <div id="idle-header" style="color:var(--muted);font-size:0.82rem;padding:4px 0">
-          בחר מטוס מהמפה ↑
-        </div>
-        <div id="active-header" style="display:none">
-          <div class="panel-question-tag" id="header-cs">✈ ---</div>
-          <div class="panel-question-main">🔍 לאן אני טס?</div>
-          <div class="panel-flight-stats" id="header-stats"></div>
-        </div>
-      </div>
-
-      <!-- hint carousel OR idle msg -->
       <div id="hint-carousel">
-        <div id="idle-msg">
+        <div style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);text-align:center;padding:16px">
           <div class="idle-plane">✈️</div>
-          <div>לחץ על מטוס<br>כדי להתחיל</div>
+          <div style="font-size:0.85rem">בחר מטוס מהמפה</div>
         </div>
-      </div>
-
-      <!-- Guess row -->
-      <div id="guess-row" style="display:none">
-        <input type="text" id="guess-input" placeholder="לאן אני טס? (עיר / מדינה)"
-          onkeydown="if(event.key==='Enter')submitGuess()"/>
-        <button class="btn btn-amber" onclick="submitGuess()">🎯</button>
-      </div>
-
-      <!-- Result overlay over bottom panel -->
-      <div id="result-box">
-        <div class="result-emoji" id="r-emoji"></div>
-        <div class="result-pts" id="r-pts"></div>
-        <div class="result-dest" id="r-dest"></div>
-        <button class="btn btn-primary" style="margin-top:8px;padding:10px 20px;width:auto" onclick="nextRound()">✈️ מטוס אחר</button>
       </div>
     </div>
 
-    <!-- Right: flight info + pts + leaderboard -->
+    <!-- RIGHT: question + guess + leaderboard -->
     <div id="right-col">
-      <div id="flight-info">
-        <div class="fi-empty" id="fi-empty">בחר מטוס</div>
-        <div id="fi-data" style="display:none">
-          <div class="fi-cs" id="fi-cs"></div>
-          <div class="fi-country" id="fi-country"></div>
-          <div class="fi-stat">📍 <span id="fi-alt"></span></div>
-          <div class="fi-stat">💨 <span id="fi-spd"></span></div>
-          <div class="fi-stat">🧭 <span id="fi-dir"></span></div>
+      <div id="right-top">
+        <div id="rt-idle" class="rt-idle">בחר מטוס ↑</div>
+        <div id="rt-active" style="display:none">
+          <div class="rt-question">🔍 לאן אני טס?</div>
+          <div class="rt-cs" id="rt-cs"></div>
+          <div class="rt-stats" id="rt-stats"></div>
         </div>
       </div>
-      <div id="pts-box">
-        <div class="pts-label">שווי</div>
-        <div class="pts-value" id="pts-val">—</div>
+      <div id="guess-row" style="display:none">
+        <input type="text" id="guess-input" placeholder="עיר / מדינה..."
+          onkeydown="if(event.key==='Enter')submitGuess()"/>
+        <button class="btn btn-amber" onclick="submitGuess()">🎯 נחש</button>
       </div>
       <div id="lb-col">
         <div class="lb-col-title">🏆 ניקוד</div>
@@ -439,6 +411,14 @@ input::placeholder{color:var(--muted)}
           <div style="color:var(--muted);font-size:0.72rem;text-align:center;padding:8px">ממתין...</div>
         </div>
       </div>
+    </div>
+
+    <!-- RESULT overlay — covers entire bottom panel -->
+    <div id="result-box">
+      <div class="result-emoji" id="r-emoji"></div>
+      <div class="result-pts" id="r-pts"></div>
+      <div class="result-dest" id="r-dest"></div>
+      <button class="btn btn-primary" style="margin-top:4px;padding:11px 24px;width:auto" onclick="nextRound()">✈️ מטוס אחר</button>
     </div>
 
   </div><!-- /bottom-panel -->
@@ -680,23 +660,14 @@ function onFlightClick(cs){
 
   const f=p.data;
   // Update right col
-  document.getElementById('fi-empty').style.display='none';
-  document.getElementById('fi-data').style.display='block';
-  document.getElementById('fi-cs').textContent='✈ '+cs;
-  document.getElementById('fi-country').textContent=f[2]||'';
-  document.getElementById('fi-alt').textContent=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
-  document.getElementById('fi-spd').textContent=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
-  document.getElementById('fi-dir').textContent=dir(f[10]);
-  document.getElementById('pts-val').textContent='⭐ 3';
-
-  // Update hints header
-  document.getElementById('idle-header').style.display='none';
-  document.getElementById('active-header').style.display='block';
-  document.getElementById('header-cs').textContent='✈ '+cs+' · '+(f[2]||'');
-  document.getElementById('header-stats').innerHTML=
-    '<span>📍'+document.getElementById('fi-alt').textContent+'</span>'
-    +'<span>💨'+document.getElementById('fi-spd').textContent+'</span>'
-    +'<span>🧭'+dir(f[10])+'</span>';
+  const altStr=f[7]?Math.round(f[7]).toLocaleString()+'מ׳':'?';
+  const spdStr=f[9]?Math.round(f[9]*3.6)+'קמ"ש':'?';
+  const dirStr=dir(f[10]);
+  document.getElementById('rt-idle').style.display='none';
+  document.getElementById('rt-active').style.display='block';
+  document.getElementById('rt-cs').textContent='✈ '+cs+' · '+(f[2]||'');
+  document.getElementById('rt-stats').innerHTML=
+    '📍 '+altStr+'<br>💨 '+spdStr+'<br>🧭 '+dirStr;
 
   // Show loading in carousel
   document.getElementById('hint-carousel').innerHTML=
@@ -760,7 +731,6 @@ function unlockHint(i){
   card.querySelector('.hint-card-text').textContent=S.hints[i];
   const minus=card.querySelector('.hint-minus');if(minus)minus.remove();
   S.hintIndex=i;S.potentialPoints=Math.max(1,3-i);
-  document.getElementById('pts-val').textContent='⭐ '+S.potentialPoints;
   card.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
@@ -806,11 +776,8 @@ function resetGameUI(){
     +'<div class="idle-plane">✈️</div><div>לחץ על מטוס<br>כדי להתחיל</div></div>';
   document.getElementById('guess-row').style.display='none';
   document.getElementById('guess-input') && (document.getElementById('guess-input').value='');
-  document.getElementById('idle-header').style.display='block';
-  document.getElementById('active-header').style.display='none';
-  document.getElementById('fi-empty').style.display='block';
-  document.getElementById('fi-data').style.display='none';
-  document.getElementById('pts-val').textContent='—';
+  document.getElementById('rt-idle').style.display='block';
+  document.getElementById('rt-active').style.display='none';
   // Deselect all
   Object.entries(planeMarkers).forEach(([cs,p])=>{
     if(!playedFlights.has(cs))p.marker.setIcon(planeIcon(p.heading,false,false));
